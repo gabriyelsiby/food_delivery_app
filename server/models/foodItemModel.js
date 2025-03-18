@@ -1,0 +1,22 @@
+import mongoose from "mongoose";
+
+const foodItemSchema = new mongoose.Schema(
+    {
+        name: { type: String, required: true },
+        description: { type: String, required: true },
+        price: { type: Number, required: true },
+        category: { type: String, required: true }, // ✅ Added category (e.g., Pizza, Burger, Dessert)
+        restaurant: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant", required: true },
+        imageUrl: {
+            type: String,
+            default: "https://via.placeholder.com/150", // ✅ Default placeholder image
+        },
+        isAvailable: { type: Boolean, default: true }, // ✅ Marks food item availability
+    },
+    { timestamps: true }
+);
+
+// ✅ Ensure food name is unique within the same restaurant
+foodItemSchema.index({ name: 1, restaurant: 1 }, { unique: true });
+
+export const FoodItem = mongoose.model("FoodItem", foodItemSchema);
