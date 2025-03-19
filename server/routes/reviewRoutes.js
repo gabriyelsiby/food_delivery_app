@@ -4,16 +4,16 @@ import { addReview, deleteReview, getFoodReviews, getAverageRating } from "../co
 
 const router = express.Router();
 
-// Add a review for a food item
+// ✅ Add a review for a food item
 router.post("/add-review", authUser, addReview);
 
-// Delete a review
+// ✅ Delete a review
 router.delete("/delete-review/:reviewId", authUser, deleteReview);
 
-// Get all reviews for a specific food item
-router.get('/food-reviews/:foodId', getFoodReviews);
+// ✅ Get all reviews for a specific food item
+router.get("/food-reviews/:foodId", getFoodReviews);
 
-// Get average rating for a food item
-router.get("/avg-rating/:foodId", getAverageRating);
+// ✅ Get average rating for a food item
+router.get("/average-rating/:foodId", getAverageRating);
 
 export { router as reviewRouter };
