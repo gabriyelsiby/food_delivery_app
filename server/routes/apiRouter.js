@@ -6,36 +6,20 @@ import { cartRouter } from "./cartRoutes.js";
 import { orderRouter } from "./orderRoutes.js";
 import { reviewRouter } from "./reviewRoutes.js";
 import { paymentRouter } from "./paymentRoutes.js";
-import { deliveryPartnerRouter } from "./deliveryPartnerRoutes.js"; // ✅ Ensured correct naming
-import { couponRouter } from "./couponRoutes.js";
+import { deliveryRouter } from "./deliveryPartnerRoutes.js"; // ✅ Fix this import
+import { couponRouter } from "./couponRoutes.js"; 
 
 const router = express.Router();
 
-// ✅ User-related routes
-router.use("/users", userRouter);
-
-// ✅ Restaurant-related routes
-router.use("/restaurants", restaurantRouter);
-
-// ✅ Food item routes
-router.use("/foods", foodRouter);
-
-// ✅ Cart routes
+// ✅ Register routes properly
+router.use("/user", userRouter);
+router.use("/restaurant", restaurantRouter);
+router.use("/food", foodRouter);
 router.use("/cart", cartRouter);
-
-// ✅ Order routes
-router.use("/orders", orderRouter);
-
-// ✅ Review routes
-router.use("/reviews", reviewRouter);
-
-// ✅ Payment routes
-router.use("/payments", paymentRouter);
-
-// ✅ Delivery partner routes
-router.use("/delivery-partners", deliveryPartnerRouter); // ✅ Standardized naming
-
-// ✅ Coupon routes
-router.use("/coupons", couponRouter);
+router.use("/order", orderRouter);
+router.use("/review", reviewRouter);
+router.use("/payment", paymentRouter);
+router.use("/delivery", deliveryRouter); // ✅ Fix the name here
+router.use("/coupon", couponRouter);
 
 export { router as apiRouter };

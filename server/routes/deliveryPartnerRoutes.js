@@ -1,16 +1,32 @@
 import express from "express";
-import { authDeliveryPartner } from "../middlewares/authDeliveryPartner.js";
-import { assignOrder, updateDeliveryStatus, getAssignedOrders } from "../controllers/deliveryPartnerControllers.js";
+import {
+    registerDeliveryPartner,
+    loginDeliveryPartner,
+    getDeliveryPartnerProfile,
+    getAssignedOrders,
+    updateDeliveryStatus,
+    logoutDeliveryPartner
+} from "../controllers/deliveryPartnerControllers.js";
+import { authDeliveryPartner } from "../middlewares/authDeliveryPartner.js"; 
 
 const router = express.Router();
 
-// Get assigned orders for a delivery partner
+// ✅ Register a new delivery partner
+router.post("/register", registerDeliveryPartner);
+
+// ✅ Login a delivery partner
+router.post("/login", loginDeliveryPartner);
+
+// ✅ Get delivery partner profile
+router.get("/profile", authDeliveryPartner, getDeliveryPartnerProfile);
+
+// ✅ Get assigned orders
 router.get("/assigned-orders", authDeliveryPartner, getAssignedOrders);
 
-// Update delivery status (e.g., Out for Delivery, Delivered)
-router.put("/update-status/:orderId", authDeliveryPartner, updateDeliveryStatus);
+// ✅ Update order status (Only for delivery partners)
+router.put("/update-order-status/:orderId", authDeliveryPartner, updateDeliveryStatus);
 
-// Assign an order to a delivery partner (Admin or automated system)
-router.post("/assign-order/:orderId", assignOrder);
+// ✅ Logout delivery partner
+router.get("/logout", authDeliveryPartner, logoutDeliveryPartner);
 
-export { router as deliveryPartnerRouter };
+export { router as deliveryRouter };
