@@ -4,7 +4,7 @@ import { generateToken } from "../utils/token.js";
 import fs from "fs";
 import path from "path";
 
-// ✅ Check if User is Authenticated
+//  Check if User is Authenticated
 export const checkUser = async (req, res) => {
     try {
         res.json({ message: "User is authenticated", user: req.user });
@@ -14,7 +14,7 @@ export const checkUser = async (req, res) => {
     }
 };
 
-// ✅ User Signup (Stores JWT in Cookies)
+// User Signup (Stores JWT in Cookies)
 export const userSignup = async (req, res) => {
     try {
         const { name, email, password, mobile, address, role } = req.body;
@@ -61,7 +61,7 @@ export const userSignup = async (req, res) => {
     }
 };
 
-// ✅ User Login
+//  User Login
 export const userLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -98,7 +98,7 @@ export const userLogin = async (req, res) => {
     }
 };
 
-// ✅ Get User Profile
+//  Get User Profile
 export const userProfile = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -118,23 +118,23 @@ export const userProfile = async (req, res) => {
     }
 };
 
-// ✅ Update User Profile (Including Profile Picture)
+//  Update User Profile (Including Profile Picture)
 export const updateUserProfile = async (req, res) => {
     try {
         const userId = req.user.id;
         const { name, email, mobile, address } = req.body;
         let updateFields = { name, email, mobile, address };
 
-        // ✅ Handle Profile Picture Update
+        // Handle Profile Picture Update
         if (req.file) {
             const newProfilePic = `uploads/${req.file.filename}`;
 
-            // ✅ Get User Data to Remove Old Image
+            //  Get User Data to Remove Old Image
             const user = await User.findById(userId);
             if (user.profilePic && user.profilePic !== "https://res.cloudinary.com/dzmymp0yf/image/upload/v1740756875/Food%20Order%20Website/noeuwugmxrhszkjcq2no.png") {
                 const oldImagePath = path.join("uploads", path.basename(user.profilePic));
                 if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath); // ✅ Delete old profile pic
+                    fs.unlinkSync(oldImagePath); //  Delete old profile pic
                 }
             }
             updateFields.profilePic = newProfilePic;
@@ -152,7 +152,7 @@ export const updateUserProfile = async (req, res) => {
     }
 };
 
-// ✅ User Logout
+//  User Logout
 export const userLogout = async (req, res) => {
     try {
         res.clearCookie("token", { httpOnly: true, secure: false, sameSite: "Lax" });

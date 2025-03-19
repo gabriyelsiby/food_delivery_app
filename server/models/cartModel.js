@@ -34,7 +34,7 @@ const cartSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// ✅ Calculate Total Price of Cart
+// Calculate Total Price of Cart
 cartSchema.methods.calculateTotalPrice = function () {
     this.totalPrice = this.items.reduce((total, item) => total + item.price * item.quantity, 0);
 };

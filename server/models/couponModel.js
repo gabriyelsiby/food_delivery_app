@@ -14,7 +14,7 @@ const couponSchema = new mongoose.Schema(
 
 
 
-// ✅ Auto-disable expired coupons before saving
+// ✅Auto-disable expired coupons before saving
 couponSchema.pre("save", function (next) {
     if (this.expiryDate < new Date()) {
         this.isActive = false;
@@ -22,7 +22,7 @@ couponSchema.pre("save", function (next) {
     next();
 });
 
-// ✅ Auto-disable expired coupons before updating
+//  Auto-disable expired coupons before updating
 couponSchema.pre("findOneAndUpdate", function (next) {
     if (this._update.expiryDate && new Date(this._update.expiryDate) < new Date()) {
         this._update.isActive = false;

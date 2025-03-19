@@ -28,7 +28,7 @@ const reviewSchema = new mongoose.Schema({
     },
 });
 
-// ✅ Static Method to Calculate Average Rating
+//  to Calculate Average Rating
 reviewSchema.statics.calculateAverageRating = async function (foodId) {
     const result = await this.aggregate([
         { $match: { foodId: new mongoose.Types.ObjectId(foodId) } },

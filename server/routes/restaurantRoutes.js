@@ -20,10 +20,10 @@ router.post("/login", restaurantLogin);
 // Get restaurant profile (Only for logged-in restaurant owners)
 router.get("/profile", authRestaurant, restaurantProfile);
 
-// ✅ Edit restaurant profile (Only for logged-in restaurant owners)
+//  Edit restaurant profile (Only for logged-in restaurant owners)
 router.put("/update", authRestaurant, updateRestaurantProfile);
 
-// ✅ Logout restaurant
+// Logout restaurant
 router.get("/logout", restaurantLogout);
 
 export { router as restaurantRouter };

@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
         },
         profilePic: {
             type: String,
-            default: "https://res.cloudinary.com/dzmymp0yf/image/upload/v1740756875/Food%20Order%20Website/noeuwugmxrhszkjcq2no.png", // ✅ Default profile image
+            default: "https://res.cloudinary.com/dzmymp0yf/image/upload/v1740756875/Food%20Order%20Website/noeuwugmxrhszkjcq2no.png", 
         },
     },
     { timestamps: true }

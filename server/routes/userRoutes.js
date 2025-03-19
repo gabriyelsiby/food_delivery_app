@@ -7,19 +7,19 @@ import {
 
 const router = express.Router();
 
-// ✅ User Signup
+//  User Signup
 router.post("/signup", userSignup);
 
-// ✅ User Login
+//  User Login
 router.post("/login", userLogin);
 
-// ✅ Get User Profile
+//  Get User Profile
 router.get("/profile", authUser, userProfile);
 
-// ✅ Update User Profile (Including Profile Picture)
+//  Update User Profile (Including Profile Picture)
 router.put("/update-profile", authUser, upload.single("profilePic"), updateUserProfile);
 
-// ✅ User Logout
+
 router.get("/logout", authUser, userLogout);
 
 export { router as userRouter };

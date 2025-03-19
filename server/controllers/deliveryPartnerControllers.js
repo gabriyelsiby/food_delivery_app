@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/token.js";
 import mongoose from "mongoose";
 
-// ✅ Register a Delivery Partner
+//  Register a Delivery Partner
 export const registerDeliveryPartner = async (req, res) => {
     try {
         const { name, email, password, mobile, vehicleType } = req.body;
@@ -40,7 +40,7 @@ export const registerDeliveryPartner = async (req, res) => {
     }
 };
 
-// ✅ Login a Delivery Partner
+//  Login a Delivery Partner
 export const loginDeliveryPartner = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -70,7 +70,7 @@ export const loginDeliveryPartner = async (req, res) => {
     }
 };
 
-// ✅ Get Delivery Partner Profile
+//  Get Delivery Partner Profile
 export const getDeliveryPartnerProfile = async (req, res) => {
     try {
         const partnerId = req.user.id;
@@ -87,7 +87,7 @@ export const getDeliveryPartnerProfile = async (req, res) => {
     }
 };
 
-// ✅ Get Assigned Orders
+//  Get Assigned Orders
 export const getAssignedOrders = async (req, res) => {
     try {
         const deliveryPartnerId = req.user.id;
@@ -108,7 +108,7 @@ export const getAssignedOrders = async (req, res) => {
     }
 };
 
-// ✅ Update Order Delivery Status
+// Update Order Delivery Status
 export const updateDeliveryStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -140,7 +140,7 @@ export const updateDeliveryStatus = async (req, res) => {
     }
 };
 
-// ✅ Assign Order to a Delivery Partner (Admin Only)
+//  Assign Order to a Delivery Partner (Admin Only)
 export const assignOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -166,7 +166,7 @@ export const assignOrder = async (req, res) => {
     }
 };
 
-// ✅ Logout a Delivery Partner
+//  Logout a Delivery Partner
 export const logoutDeliveryPartner = async (req, res) => {
     try {
         res.clearCookie("token");

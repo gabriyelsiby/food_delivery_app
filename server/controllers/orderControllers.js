@@ -2,31 +2,31 @@ import { Order } from "../models/orderModel.js";
 import { FoodItem } from "../models/foodItemModel.js";
 import mongoose from "mongoose";
 
-// ✅ Place an Order (User Only)
+//  Place an Order (User Only)
 export const placeOrder = async (req, res) => {
     try {
         const userId = req.user.id;
         const { restaurantId, items, discount = 0, address, paymentMethod } = req.body;
 
-        // ✅ Validate Required Fields
+        //  Validate Required Fields
         if (!restaurantId || !items || items.length === 0 || !address || !paymentMethod) {
             return res.status(400).json({ message: "All fields are required (restaurantId, items, address, paymentMethod)" });
         }
 
-        // ✅ Fetch Food Item Prices & Calculate Total Price
+        //  Fetch Food Item Prices & Calculate Total Price
         let totalPrice = 0;
         for (const item of items) {
             const foodItem = await FoodItem.findById(item.foodId);
             if (!foodItem) {
                 return res.status(404).json({ message: `Food item with ID ${item.foodId} not found` });
             }
-            totalPrice += foodItem.price * item.quantity; // ✅ Calculate Total
+            totalPrice += foodItem.price * item.quantity; // Calculate Total
         }
 
-        // ✅ Ensure Discount Does Not Exceed Total Price
+        //  Ensure Discount Does Not Exceed Total Price
         const finalPrice = Math.max(totalPrice - discount, 0);
 
-        // ✅ Create and Save Order
+        //  Create and Save Order
         const newOrder = new Order({
             userId,
             restaurantId,
@@ -48,7 +48,7 @@ export const placeOrder = async (req, res) => {
     }
 };
 
-// ✅ Get Order Details by Order ID
+//  Get Order Details by Order ID
 export const getOrderDetails = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -75,7 +75,7 @@ export const getOrderDetails = async (req, res) => {
     }
 };
 
-// ✅ Get All Orders for a User
+//  Get All Orders for a User
 export const getUserOrders = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -92,14 +92,14 @@ export const getUserOrders = async (req, res) => {
     }
 };
 
-// ✅ Update Order Status (Only Restaurant)
+// Update Order Status (Only Restaurant)
 export const updateOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { status } = req.body;
         const restaurantId = req.user.id;
 
-        // ✅ Fix: Use correct order status values
+        //   Use correct order status values
         if (!["Pending", "Preparing", "Out for Delivery", "Delivered"].includes(status)) {
             return res.status(400).json({ message: "Invalid status value" });
         }
@@ -125,7 +125,7 @@ export const updateOrderStatus = async (req, res) => {
     }
 };
 
-// ✅ Assign Order to a Delivery Partner (Admin)
+//  Assign Order to a Delivery Partner (Admin)
 export const assignOrderToDeliveryPartner = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -151,7 +151,7 @@ export const assignOrderToDeliveryPartner = async (req, res) => {
     }
 };
 
-// ✅ Cancel an Order (Only User)
+//  Cancel an Order (Only User)
 export const cancelOrder = async (req, res) => {
     try {
         const { orderId } = req.params;

@@ -4,7 +4,7 @@ const orderSchema = new mongoose.Schema(
     {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant", required: true },
-        deliveryPartner: { type: mongoose.Schema.Types.ObjectId, ref: "DeliveryPartner", default: null }, // ✅ New Field
+        deliveryPartner: { type: mongoose.Schema.Types.ObjectId, ref: "DeliveryPartner", default: null }, 
         items: [{ foodId: { type: mongoose.Schema.Types.ObjectId, ref: "FoodItem" }, quantity: Number, price: Number }],
         totalPrice: { type: Number, required: true },
         discount: { type: Number, default: 0 },

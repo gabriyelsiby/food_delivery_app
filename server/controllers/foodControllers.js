@@ -2,7 +2,7 @@ import { FoodItem } from "../models/foodItemModel.js";
 import path from "path";
 import fs from "fs";
 
-// ✅ Get all food items
+//  Get all food items
 export const getAllFoodItems = async (req, res) => {
     try {
         const foodList = await FoodItem.find();
@@ -13,12 +13,12 @@ export const getAllFoodItems = async (req, res) => {
     }
 };
 
-// ✅ Get food details by ID
+//  Get food details by ID
 export const getFoodDetails = async (req, res) => {
     try {
         const { foodId } = req.params;
 
-        // ✅ Validate foodId
+        //  Validate foodId
         if (!foodId.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ message: "Invalid food ID format" });
         }
@@ -34,7 +34,7 @@ export const getFoodDetails = async (req, res) => {
     }
 };
 
-// ✅ Create a new food item (Only for restaurant owners)
+//  Create a new food item (Only for restaurant owners)
 export const createFoodItem = async (req, res) => {
     try {
         console.log("Request Body:", req.body);
@@ -51,13 +51,13 @@ export const createFoodItem = async (req, res) => {
             return res.status(400).json({ message: "Image is required" });
         }
 
-        // ✅ Ensure "uploads" directory exists
+        //  Ensure "uploads" directory exists
         const uploadDir = path.join(process.cwd(), "uploads");
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir);
         }
 
-        // ✅ Store uploaded image in the local server
+        //  Store uploaded image in the local server
         const imagePath = `uploads/${req.file.filename}`;
 
         const newFoodItem = new FoodItem({
@@ -65,7 +65,7 @@ export const createFoodItem = async (req, res) => {
             description,
             price,
             category,
-            imageUrl: imagePath,  // ✅ Correctly format image path
+            imageUrl: imagePath,  
             restaurant: restaurantId
         });
 
@@ -78,14 +78,14 @@ export const createFoodItem = async (req, res) => {
     }
 };
 
-// ✅ Update an existing food item (Only for the restaurant that owns it)
+//  Update an existing food item (Only for the restaurant that owns it)
 export const updateFoodItem = async (req, res) => {
     try {
         const { foodId } = req.params;
         const { name, description, price, category } = req.body;
         const restaurantId = req.user.id;
 
-        // ✅ Validate foodId
+        //  Validate foodId
         if (!foodId.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ message: "Invalid food ID format" });
         }
@@ -98,12 +98,12 @@ export const updateFoodItem = async (req, res) => {
 
         let updatedFields = { name, description, price, category };
 
-        // ✅ Handle image update
+        //  Handle image update
         if (req.file) {
             const newImagePath = `uploads/${req.file.filename}`;
 
             if (foodItem.imageUrl && fs.existsSync(foodItem.imageUrl)) {
-                fs.unlinkSync(foodItem.imageUrl); // ✅ Delete old image
+                fs.unlinkSync(foodItem.imageUrl); //  Delete old image
             }
 
             updatedFields.imageUrl = newImagePath;
@@ -119,13 +119,13 @@ export const updateFoodItem = async (req, res) => {
     }
 };
 
-// ✅ Delete an existing food item (Only for the restaurant that owns it)
+// Delete an existing food item (Only for the restaurant that owns it)
 export const deleteFoodItem = async (req, res) => {
     try {
         const { foodId } = req.params;
         const restaurantId = req.user.id;
 
-        // ✅ Validate foodId
+        //  Validate foodId
         if (!foodId.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ message: "Invalid food ID format" });
         }
@@ -136,7 +136,7 @@ export const deleteFoodItem = async (req, res) => {
             return res.status(404).json({ message: "Food item not found or unauthorized to delete" });
         }
 
-        // ✅ Delete image file
+        // Delete image file
         if (foodItem.imageUrl && fs.existsSync(foodItem.imageUrl)) {
             fs.unlinkSync(foodItem.imageUrl);
         }
