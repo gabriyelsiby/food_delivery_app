@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 // ✅ Place an Order (User Only)
 export const placeOrder = async (req, res) => {
     try {
-        const userId = req.user.id; // ✅ Get User ID from JWT
+        const userId = req.user.id;
         const { restaurantId, items, totalPrice, discount = 0, address, paymentMethod } = req.body;
 
         if (!restaurantId || !items || items.length === 0 || !totalPrice || !address || !paymentMethod) {
@@ -40,7 +40,6 @@ export const getOrderDetails = async (req, res) => {
     try {
         const { orderId } = req.params;
 
-        // ✅ Validate Order ID
         if (!mongoose.Types.ObjectId.isValid(orderId)) {
             return res.status(400).json({ message: "Invalid Order ID format" });
         }
@@ -48,7 +47,8 @@ export const getOrderDetails = async (req, res) => {
         const order = await Order.findById(orderId)
             .populate("userId", "name email")
             .populate("restaurantId", "name address")
-            .populate("items.foodId", "name price imageUrl"); // ✅ Populate Food Details
+            .populate("items.foodId", "name price imageUrl")
+            .populate("deliveryPartner", "name mobile vehicleType"); // ✅ Added delivery partner details
 
         if (!order) {
             return res.status(404).json({ message: "Order not found" });
@@ -86,7 +86,8 @@ export const updateOrderStatus = async (req, res) => {
         const { status } = req.body;
         const restaurantId = req.user.id;
 
-        if (!["Pending", "In Progress", "Completed", "Cancelled"].includes(status)) {
+        // ✅ Fix: Use correct order status values
+        if (!["Pending", "Preparing", "Out for Delivery", "Delivered"].includes(status)) {
             return res.status(400).json({ message: "Invalid status value" });
         }
 
@@ -103,7 +104,7 @@ export const updateOrderStatus = async (req, res) => {
         order.status = status;
         await order.save();
 
-        res.json({ message: "Order status updated successfully", data: order });
+        res.json({ message: `Order status updated to '${status}'`, data: order });
 
     } catch (error) {
         console.error("Update Order Status Error:", error);
