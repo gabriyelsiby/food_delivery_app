@@ -1,19 +1,32 @@
 import { Order } from "../models/orderModel.js";
+import { FoodItem } from "../models/foodItemModel.js";
 import mongoose from "mongoose";
 
 // ✅ Place an Order (User Only)
 export const placeOrder = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { restaurantId, items, totalPrice, discount = 0, address, paymentMethod } = req.body;
+        const { restaurantId, items, discount = 0, address, paymentMethod } = req.body;
 
-        if (!restaurantId || !items || items.length === 0 || !totalPrice || !address || !paymentMethod) {
-            return res.status(400).json({ message: "All fields are required (restaurantId, items, totalPrice, address, paymentMethod)" });
+        // ✅ Validate Required Fields
+        if (!restaurantId || !items || items.length === 0 || !address || !paymentMethod) {
+            return res.status(400).json({ message: "All fields are required (restaurantId, items, address, paymentMethod)" });
         }
 
-        // ✅ Calculate Final Price (After Discount)
-        const finalPrice = totalPrice - discount;
+        // ✅ Fetch Food Item Prices & Calculate Total Price
+        let totalPrice = 0;
+        for (const item of items) {
+            const foodItem = await FoodItem.findById(item.foodId);
+            if (!foodItem) {
+                return res.status(404).json({ message: `Food item with ID ${item.foodId} not found` });
+            }
+            totalPrice += foodItem.price * item.quantity; // ✅ Calculate Total
+        }
 
+        // ✅ Ensure Discount Does Not Exceed Total Price
+        const finalPrice = Math.max(totalPrice - discount, 0);
+
+        // ✅ Create and Save Order
         const newOrder = new Order({
             userId,
             restaurantId,
@@ -23,7 +36,7 @@ export const placeOrder = async (req, res) => {
             finalPrice,
             address,
             paymentMethod,
-            status: "Pending"
+            status: "Pending",
         });
 
         await newOrder.save();
@@ -48,7 +61,7 @@ export const getOrderDetails = async (req, res) => {
             .populate("userId", "name email")
             .populate("restaurantId", "name address")
             .populate("items.foodId", "name price imageUrl")
-            .populate("deliveryPartner", "name mobile vehicleType"); // ✅ Added delivery partner details
+            .populate("deliveryPartner", "name mobile vehicleType"); // ✅ Populated delivery partner details
 
         if (!order) {
             return res.status(404).json({ message: "Order not found" });
@@ -108,6 +121,32 @@ export const updateOrderStatus = async (req, res) => {
 
     } catch (error) {
         console.error("Update Order Status Error:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+
+// ✅ Assign Order to a Delivery Partner (Admin)
+export const assignOrderToDeliveryPartner = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { deliveryPartnerId } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(deliveryPartnerId)) {
+            return res.status(400).json({ message: "Invalid Order ID or Delivery Partner ID" });
+        }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        order.deliveryPartner = deliveryPartnerId;
+        order.status = "Out for Delivery";
+        await order.save();
+
+        res.json({ message: "Order assigned to delivery partner", data: order });
+    } catch (error) {
+        console.error("Assign Order Error:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
