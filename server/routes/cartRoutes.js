@@ -1,16 +1,22 @@
 import express from "express";
 import { authUser } from "../middlewares/authUser.js";
-import { addFoodToCart, getCart, removeFoodFromCart } from "../controllers/cartControllers.js";
+import { addToCart, getCart, updateCart, removeFromCart, clearCart } from "../controllers/cartControllers.js"; // Updated filename
 
 const router = express.Router();
 
-// Add food item to cart
-router.post("/add-to-cart", authUser, addFoodToCart);
+// ✅ Add or Update a food item in the cart
+router.post("/add", authUser, addToCart);
 
-// Remove food item from cart
-router.delete("/remove-from-cart", authUser, removeFoodFromCart);
+// ✅ Get cart details
+router.get("/", authUser, getCart);
 
-// Get cart details
-router.get("/get-cart-details", authUser, getCart);
+// ✅ Update cart item quantity
+router.put("/update", authUser, updateCart);
+
+// ✅ Remove a food item from the cart
+router.delete("/remove", authUser, removeFromCart);
+
+// ✅ Clear the entire cart
+router.delete("/clear", authUser, clearCart);
 
 export { router as cartRouter };

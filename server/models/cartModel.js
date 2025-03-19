@@ -1,16 +1,16 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-const cartSchema = new Schema(
+const cartSchema = new mongoose.Schema(
     {
         userId: {
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
         items: [
             {
                 foodId: {
-                    type: Schema.Types.ObjectId,
+                    type: mongoose.Schema.Types.ObjectId,
                     ref: "FoodItem",
                     required: true,
                 },
@@ -34,8 +34,9 @@ const cartSchema = new Schema(
     { timestamps: true }
 );
 
+// ✅ Calculate Total Price of Cart
 cartSchema.methods.calculateTotalPrice = function () {
     this.totalPrice = this.items.reduce((total, item) => total + item.price * item.quantity, 0);
 };
 
-export const Cart = model("Cart", cartSchema);
+export const Cart = mongoose.model("Cart", cartSchema);
