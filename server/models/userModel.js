@@ -9,8 +9,12 @@ const userSchema = new mongoose.Schema(
         address: { type: String, required: true },
         role: { 
             type: String, 
-            enum: ["user", "admin", "restaurant", "deliveryPartner"],  // ✅ Add roles
+            enum: ["user", "admin", "restaurant", "deliveryPartner"],  
             default: "user"  
+        },
+        profilePic: {
+            type: String,
+            default: "https://res.cloudinary.com/dzmymp0yf/image/upload/v1740756875/Food%20Order%20Website/noeuwugmxrhszkjcq2no.png", // ✅ Default profile image
         },
     },
     { timestamps: true }

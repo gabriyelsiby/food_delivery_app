@@ -1,6 +1,8 @@
 import { User } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/token.js";
+import fs from "fs";
+import path from "path";
 
 // ✅ Check if User is Authenticated
 export const checkUser = async (req, res) => {
@@ -33,7 +35,7 @@ export const userSignup = async (req, res) => {
             password: hashedPassword,
             mobile,
             address,
-            role: role || "user"
+            role: role || "user",
         });
 
         await newUser.save();
@@ -43,16 +45,15 @@ export const userSignup = async (req, res) => {
             return res.status(500).json({ message: "Failed to generate token" });
         }
 
-        // ✅ Store token in cookies (Use secure: false for localhost)
         res.cookie("token", token, {
             httpOnly: true,
-            secure: false,  // ✅ Change to true only in production (HTTPS)
-            sameSite: "Lax"
+            secure: false,  
+            sameSite: "Lax",
         });
 
         res.status(201).json({ 
             message: "Signup successful", 
-            data: { name: newUser.name, email: newUser.email, role: newUser.role } 
+            data: { name: newUser.name, email: newUser.email, role: newUser.role, profilePic: newUser.profilePic } 
         });
     } catch (error) {
         console.error("Signup Error:", error);
@@ -60,7 +61,7 @@ export const userSignup = async (req, res) => {
     }
 };
 
-// ✅ User Login (Stores JWT in Cookies)
+// ✅ User Login
 export const userLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -81,20 +82,15 @@ export const userLogin = async (req, res) => {
 
         const token = generateToken(user._id, user.role);
 
-        if (!token) {
-            return res.status(500).json({ message: "Failed to generate token" });
-        }
-
-        // ✅ Store token in cookies (Use secure: false for localhost)
         res.cookie("token", token, {
             httpOnly: true,
-            secure: false,  // ✅ Change to true only in production (HTTPS)
-            sameSite: "Lax"
+            secure: false,  
+            sameSite: "Lax",
         });
 
         res.json({ 
             message: "Login successful", 
-            data: { name: user.name, email: user.email, role: user.role } 
+            data: { name: user.name, email: user.email, role: user.role, profilePic: user.profilePic } 
         });
     } catch (error) {
         console.error("Login Error:", error);
@@ -114,13 +110,7 @@ export const userProfile = async (req, res) => {
 
         res.json({ 
             message: "User profile retrieved", 
-            data: { 
-                name: user.name, 
-                email: user.email, 
-                role: user.role,
-                mobile: user.mobile,
-                address: user.address
-            } 
+            data: user 
         });
     } catch (error) {
         console.error("Profile Error:", error);
@@ -128,17 +118,29 @@ export const userProfile = async (req, res) => {
     }
 };
 
-// ✅ Update User Profile
+// ✅ Update User Profile (Including Profile Picture)
 export const updateUserProfile = async (req, res) => {
     try {
         const userId = req.user.id;
         const { name, email, mobile, address } = req.body;
+        let updateFields = { name, email, mobile, address };
 
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { name, email, mobile, address },
-            { new: true }
-        ).select("-password");
+        // ✅ Handle Profile Picture Update
+        if (req.file) {
+            const newProfilePic = `uploads/${req.file.filename}`;
+
+            // ✅ Get User Data to Remove Old Image
+            const user = await User.findById(userId);
+            if (user.profilePic && user.profilePic !== "https://res.cloudinary.com/dzmymp0yf/image/upload/v1740756875/Food%20Order%20Website/noeuwugmxrhszkjcq2no.png") {
+                const oldImagePath = path.join("uploads", path.basename(user.profilePic));
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath); // ✅ Delete old profile pic
+                }
+            }
+            updateFields.profilePic = newProfilePic;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId, updateFields, { new: true }).select("-password");
 
         res.json({ 
             message: "Profile updated successfully", 
@@ -150,7 +152,7 @@ export const updateUserProfile = async (req, res) => {
     }
 };
 
-// ✅ User Logout (Clears Token)
+// ✅ User Logout
 export const userLogout = async (req, res) => {
     try {
         res.clearCookie("token", { httpOnly: true, secure: false, sameSite: "Lax" });
@@ -160,5 +162,3 @@ export const userLogout = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-
-// ✅ Export All Controllers
