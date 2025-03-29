@@ -3,24 +3,31 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/token.js";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 
-//  Check if User is Authenticated
+dotenv.config();
+
+// ✅ Check if User is Authenticated
 export const checkUser = async (req, res) => {
     try {
         res.json({ message: "User is authenticated", user: req.user });
     } catch (error) {
-        console.error("Check User Error:", error);
+        console.error("🔥 Check User Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
-// User Signup (Stores JWT in Cookies)
+// ✅ User Signup (Stores JWT in Cookies)
 export const userSignup = async (req, res) => {
     try {
-        const { name, email, password, mobile, address, role } = req.body;
+        const { name, email, password, confirmPassword, mobile, role } = req.body;
 
-        if (!name || !email || !password || !mobile || !address) {
+        if (!name || !email || !password || !confirmPassword || !mobile) {
             return res.status(400).json({ message: "All fields are required" });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({ message: "Passwords do not match" });
         }
 
         const userExist = await User.findOne({ email });
@@ -34,7 +41,6 @@ export const userSignup = async (req, res) => {
             email,
             password: hashedPassword,
             mobile,
-            address,
             role: role || "user",
         });
 
@@ -47,21 +53,28 @@ export const userSignup = async (req, res) => {
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: false,  
+            secure: process.env.NODE_ENV === "production",
             sameSite: "Lax",
         });
 
         res.status(201).json({ 
             message: "Signup successful", 
-            data: { name: newUser.name, email: newUser.email, role: newUser.role, profilePic: newUser.profilePic } 
+            token, // ✅ Sending token
+            data: { 
+                id: newUser._id,
+                name: newUser.name, 
+                email: newUser.email, 
+                role: newUser.role, 
+                profilePic: newUser.profilePic 
+            } 
         });
     } catch (error) {
-        console.error("Signup Error:", error);
+        console.error("🔥 Signup Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
-//  User Login
+// ✅ User Login
 export const userLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -84,21 +97,28 @@ export const userLogin = async (req, res) => {
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: false,  
+            secure: process.env.NODE_ENV === "production",
             sameSite: "Lax",
         });
 
         res.json({ 
             message: "Login successful", 
-            data: { name: user.name, email: user.email, role: user.role, profilePic: user.profilePic } 
+            token, // ✅ Sending token
+            data: { 
+                id: user._id,
+                name: user.name, 
+                email: user.email, 
+                role: user.role, 
+                profilePic: user.profilePic 
+            } 
         });
     } catch (error) {
-        console.error("Login Error:", error);
+        console.error("🔥 Login Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
-//  Get User Profile
+// ✅ Get User Profile
 export const userProfile = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -113,28 +133,28 @@ export const userProfile = async (req, res) => {
             data: user 
         });
     } catch (error) {
-        console.error("Profile Error:", error);
+        console.error("🔥 Profile Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
-//  Update User Profile (Including Profile Picture)
+// ✅ Update User Profile (Including Profile Picture)
 export const updateUserProfile = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { name, email, mobile, address } = req.body;
-        let updateFields = { name, email, mobile, address };
+        const { name, email, mobile } = req.body;
+        let updateFields = { name, email, mobile };
 
-        // Handle Profile Picture Update
+        // ✅ Handle Profile Picture Update
         if (req.file) {
             const newProfilePic = `uploads/${req.file.filename}`;
 
-            //  Get User Data to Remove Old Image
+            // ✅ Get User Data to Remove Old Image
             const user = await User.findById(userId);
-            if (user.profilePic && user.profilePic !== "https://res.cloudinary.com/dzmymp0yf/image/upload/v1740756875/Food%20Order%20Website/noeuwugmxrhszkjcq2no.png") {
+            if (user.profilePic && user.profilePic.startsWith("uploads/")) {
                 const oldImagePath = path.join("uploads", path.basename(user.profilePic));
                 if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath); //  Delete old profile pic
+                    fs.unlinkSync(oldImagePath); // ✅ Delete old profile pic
                 }
             }
             updateFields.profilePic = newProfilePic;
@@ -147,18 +167,18 @@ export const updateUserProfile = async (req, res) => {
             data: updatedUser 
         });
     } catch (error) {
-        console.error("Profile Update Error:", error);
+        console.error("🔥 Profile Update Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
-//  User Logout
+// ✅ User Logout
 export const userLogout = async (req, res) => {
     try {
-        res.clearCookie("token", { httpOnly: true, secure: false, sameSite: "Lax" });
+        res.clearCookie("token", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax" });
         res.json({ message: "Logout successful" });
     } catch (error) {
-        console.error("Logout Error:", error);
+        console.error("🔥 Logout Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };

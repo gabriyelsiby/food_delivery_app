@@ -1,7 +1,7 @@
 import { Cart } from "../models/cartModel.js";
 import { FoodItem } from "../models/foodItemModel.js";
 
-//  Add or Update Food in Cart
+// Add or Update Food in Cart
 export const addToCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -25,7 +25,7 @@ export const addToCart = async (req, res) => {
             cart = new Cart({ userId, items: [] });
         }
 
-        //  Check if item already exists in the cart
+        // Check if item already exists in the cart
         const existingItem = cart.items.find((item) => item.foodId.equals(foodId));
         if (existingItem) {
             existingItem.quantity += quantity;
@@ -33,6 +33,7 @@ export const addToCart = async (req, res) => {
             cart.items.push({ foodId, quantity, price: foodItem.price });
         }
 
+        // Recalculate total price
         cart.calculateTotalPrice();
         await cart.save();
 
@@ -43,7 +44,7 @@ export const addToCart = async (req, res) => {
     }
 };
 
-//  Get Cart Details
+// Get Cart Details
 export const getCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -63,7 +64,7 @@ export const getCart = async (req, res) => {
     }
 };
 
-//  Update Cart Item Quantity
+// Update Cart Item Quantity
 export const updateCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -87,6 +88,8 @@ export const updateCart = async (req, res) => {
         }
 
         item.quantity = quantity;
+
+        // Recalculate total price
         cart.calculateTotalPrice();
         await cart.save();
 
@@ -97,7 +100,7 @@ export const updateCart = async (req, res) => {
     }
 };
 
-//  Remove Food from Cart
+// Remove Food from Cart
 export const removeFromCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -116,6 +119,8 @@ export const removeFromCart = async (req, res) => {
         }
 
         cart.items = cart.items.filter((item) => !item.foodId.equals(foodId));
+
+        // Recalculate total price
         cart.calculateTotalPrice();
         await cart.save();
 
@@ -126,7 +131,7 @@ export const removeFromCart = async (req, res) => {
     }
 };
 
-//  Clear Entire Cart
+// Clear Entire Cart
 export const clearCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -141,7 +146,7 @@ export const clearCart = async (req, res) => {
         }
 
         cart.items = [];
-        cart.totalPrice = 0;
+        cart.totalPrice = 0; // Reset total price when cart is cleared
         await cart.save();
 
         res.status(200).json({ message: "Cart cleared successfully", data: cart });
