@@ -1,24 +1,30 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import pkg from "cloudinary";
+import dotenv from "dotenv";
 
-//  Ensure "uploads" directory exists
-const uploadDir = "uploads";
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
+dotenv.config();
 
-//  Configure storage for uploaded images
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "uploads/");
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
+const { v2: cloudinary } = pkg;
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Configure Multer Storage with Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: "food-delivery-app/uploads",
+        format: async (req, file) => "png", // Convert all files to PNG
+        public_id: (req, file) => file.fieldname + "-" + Date.now(),
     },
 });
 
-//  Allow only images
+// File filter to allow only images
 const fileFilter = (req, file, cb) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
     if (allowedTypes.includes(file.mimetype)) {
@@ -28,9 +34,9 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-//  Set upload limits (max 5MB)
+// Export Multer Upload
 export const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 },
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
