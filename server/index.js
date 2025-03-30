@@ -9,28 +9,37 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Connect to database
 connectDB();
 
-app.use(express.json());
-app.use(cookieParser());
+// ✅ Apply CORS before any other middleware
 app.use(
     cors({
         origin: ["http://localhost:5173", "https://food-delivery-app-clint.vercel.app"],
         credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTION"],
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
+
+// Test route
 app.get("/", (req, res) => {
     res.send("Hello World!!!!!");
 });
 
+// API routes
 app.use("/api", apiRouter);
 
-app.all("*", (req, res, next) => {
-    res.status(404).json({ message: "endpoint does not exist" });
+// Handle unknown routes
+app.all("*", (req, res) => {
+    res.status(404).json({ message: "Endpoint does not exist" });
 });
 
+// Start server
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`🚀 Server running on port ${port}`);
 });
