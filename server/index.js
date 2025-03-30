@@ -7,7 +7,6 @@ import cors from "cors";
 
 dotenv.config();
 const app = express();
-const port = process.env.PORT || 5000;
 
 connectDB();
 
@@ -28,10 +27,9 @@ app.get("/", (req, res) => {
 app.use("/api", apiRouter);
 
 app.all("*", (req, res, next) => {
-    res.status(404).json({ message: "endpoint does not exist" });
+    res.status(404).json({ message: "Endpoint does not exist" });
 });
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
-
+// ❌ Remove app.listen(port)
+// ✅ Export app as default for Vercel
+export default app;
