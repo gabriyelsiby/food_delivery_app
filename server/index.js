@@ -9,30 +9,29 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ✅ Connect to MongoDB
 connectDB();
 
-// ✅ CORS Middleware (Fixed Configuration)
-app.use(cors({
-  origin: "http://localhost:5173", // ✅ Allow frontend requests
-  credentials: true, // ✅ Allow cookies (important for authentication)
-  methods: ["GET", "POST", "PUT", "DELETE"], // ✅ Allow API methods
-  allowedHeaders: ["Content-Type", "Authorization"], // ✅ Allow necessary headers
-}));
+app.use(express.json());
+app.use(cookieParser());
+app.use(
+    cors({
+        origin: ["http://localhost:5173", "https://food-delivery-app-clint.vercel.app/"],
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTION"],
+    })
+);
 
-// ✅ Middleware
-app.use(express.json()); // Parse JSON data
-app.use(cookieParser()); // Enable cookie handling
+app.get("/", (req, res) => {
+    res.send("Hello World!!!!!");
+});
 
-// ✅ Register API routes
 app.use("/api", apiRouter);
 
-// ✅ Handle Invalid Routes
-app.all("*", (req, res) => {
-    res.status(404).json({ message: "Endpoint does not exist" });
+app.all("*", (req, res, next) => {
+    res.status(404).json({ message: "endpoint does not exist" });
 });
 
-// ✅ Start the Server
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Example app listening on port ${port}`);
 });
+
