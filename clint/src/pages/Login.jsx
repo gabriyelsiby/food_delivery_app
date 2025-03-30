@@ -1,8 +1,7 @@
-// filepath: c:\Users\gabriyel\OneDrive\Desktop\food-delivery-app\src\pages\Login.jsx
 import React, { useContext, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
+import { axiosInstance } from "../config/axiosConfig"; // ✅ Import axios instance
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -19,11 +18,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/user/login",
-        { email, password },
-        { withCredentials: true }
-      );
+      const response = await axiosInstance.post("/user/login", { email, password });
 
       console.log("Login API Response:", response.data);
 

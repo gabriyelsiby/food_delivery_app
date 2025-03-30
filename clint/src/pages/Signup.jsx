@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { axiosInstance } from "../config/axiosConfig"; // Import axiosInstance
 
 const Signup = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
+    email: "", // ✅ Add email field
     password: "",
     confirmPassword: "",
     mobile: "",
@@ -39,14 +39,12 @@ const Signup = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/api/user/signup", {
+      const response = await axiosInstance.post("/user/signup", {
         name: formData.name,
-        email: formData.email,
+        email: formData.email, // ✅ Sending email
         password: formData.password,
-        confirmPassword: formData.confirmPassword,
+        confirmPassword: formData.confirmPassword, // ✅ Sending confirmPassword
         mobile: formData.mobile,
-      }, {
-        withCredentials: true,
       });
 
       setMessage(response.data.message);
@@ -77,7 +75,7 @@ const Signup = () => {
         <input
           type="email"
           name="email"
-          placeholder="Email"
+          placeholder="Email" // ✅ Add email input
           value={formData.email}
           onChange={handleChange}
           required
@@ -113,7 +111,7 @@ const Signup = () => {
 
         <button
           type="submit"
-          className={`w-full text-white p-2 mt-4 rounded ${loading ? "bg-gray-400 cursor-not allowed" : "bg-green-500 hover:bg-green-600 transition"}`}
+          className={`w-full text-white p-2 mt-4 rounded ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 transition"}`}
           disabled={loading}
         >
           {loading ? "Signing up..." : "Signup"}
