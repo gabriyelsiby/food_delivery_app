@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import cors from "cors";
 
+// ✅ Load environment variables
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -12,41 +13,28 @@ const port = process.env.PORT || 5000;
 // ✅ Connect to Database
 connectDB();
 
-// ✅ CORS Configuration
+// ✅ Define allowed frontend URLs
 const allowedOrigins = [
   "http://localhost:5173",
   "https://food-delivery-app-mu-amber.vercel.app",
-  /https:\/\/food-delivery-app-clint.*\.vercel\.app$/, // Allows dynamic subdomains from Vercel
+  "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app", // ✅ Update with your latest frontend URL
 ];
 
+// ✅ CORS Configuration
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (
-        !origin ||
-        allowedOrigins.some((o) =>
-          o instanceof RegExp ? o.test(origin) : o === origin
-        )
-      ) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true,
+    credentials: true, // ✅ Required for JWT & cookies
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-// ✅ Ensure CORS Headers Are Sent
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
-  next();
-});
 
 // ✅ Middleware
 app.use(express.json());
