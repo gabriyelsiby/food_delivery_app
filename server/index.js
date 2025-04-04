@@ -15,7 +15,7 @@ connectDB();
 // ✅ CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://food-delivery-app-clint.vercel.app",
+  "https://food-delivery-app-mu-amber.vercel.app",
   /https:\/\/food-delivery-app-clint.*\.vercel\.app$/, // Allows dynamic subdomains from Vercel
 ];
 
