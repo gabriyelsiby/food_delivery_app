@@ -123,6 +123,25 @@ export const updateRestaurantProfile = async (req, res) => {
     }
 };
 
+
+// ✅ Get all restaurants (optionally filter by cuisine)
+export const getRestaurants = async (req, res) => {
+    try {
+        const { cuisine } = req.query;
+
+        let query = {};
+        if (cuisine) {
+            query.cuisine = { $regex: new RegExp(cusine, "i") }; // case-insensitive match
+        }
+
+        const restaurants = await Restaurant.find(query).select("-password");
+        res.json({ message: "Restaurants retrieved", data: restaurants });
+    } catch (error) {
+        console.error("Get Restaurants Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 //  Logout Restaurant
 export const restaurantLogout = async (req, res) => {
     try {

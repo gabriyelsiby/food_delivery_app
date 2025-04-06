@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { FoodItem } from "./foodItemModel.js";
 
 const cartSchema = new mongoose.Schema(
     {
@@ -34,9 +35,17 @@ const cartSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Calculate Total Price of Cart
-cartSchema.methods.calculateTotalPrice = function () {
-    this.totalPrice = this.items.reduce((total, item) => total + item.price * item.quantity, 0);
+// Updated: Calculate Total Price with latest food item prices
+cartSchema.methods.calculateTotalPrice = async function () {
+    let total = 0;
+    for (const item of this.items) {
+        const food = await FoodItem.findById(item.foodId);
+        if (food) {
+            item.price = food.price;
+            total += food.price * item.quantity;
+        }
+    }
+    this.totalPrice = total;
 };
 
 export const Cart = mongoose.model("Cart", cartSchema);

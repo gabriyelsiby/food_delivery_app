@@ -28,7 +28,7 @@ const reviewSchema = new mongoose.Schema({
     },
 });
 
-//  to Calculate Average Rating
+// ➕ Static method to calculate average rating for a food item
 reviewSchema.statics.calculateAverageRating = async function (foodId) {
     const result = await this.aggregate([
         { $match: { foodId: new mongoose.Types.ObjectId(foodId) } },
@@ -37,5 +37,8 @@ reviewSchema.statics.calculateAverageRating = async function (foodId) {
 
     return result.length > 0 ? result[0].avgRating.toFixed(1) : "No reviews yet";
 };
+
+// ✅ Add compound index to prevent duplicate reviews from the same user
+reviewSchema.index({ userId: 1, foodId: 1 }, { unique: true });
 
 export const Review = mongoose.model("Review", reviewSchema);

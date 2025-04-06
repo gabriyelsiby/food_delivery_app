@@ -4,7 +4,8 @@ import {
     restaurantLogin, 
     restaurantProfile, 
     updateRestaurantProfile,  
-    restaurantLogout          
+    restaurantLogout, 
+    getRestaurants         
 } from "../controllers/restaurantControllers.js";
 
 import { authRestaurant } from "../middlewares/authRestaurant.js";
@@ -22,7 +23,7 @@ router.get("/profile", authRestaurant, restaurantProfile);
 
 //  Edit restaurant profile (Only for logged-in restaurant owners)
 router.put("/update", authRestaurant, updateRestaurantProfile);
-
+router.get("/restaurants", getRestaurants);
 // Logout restaurant
 router.get("/logout", restaurantLogout);
 

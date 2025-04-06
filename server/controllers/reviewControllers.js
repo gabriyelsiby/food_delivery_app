@@ -1,6 +1,7 @@
 import { Review } from "../models/reviewModel.js";
+import { Order } from "../models/orderModel.js"; // Import Order model
 
-//  Add or Update a Review for a Food Item
+// ✅ Add or Update a Review for a Food Item
 export const addReview = async (req, res) => {
     try {
         const { foodId, rating, comment } = req.body;
@@ -10,14 +11,26 @@ export const addReview = async (req, res) => {
             return res.status(400).json({ message: "Food ID and rating are required" });
         }
 
-        //  Check if the user has already reviewed this food item
-        const existingReview = await Review.findOne({ userId, foodId });
+        // ✅ Check if the user has ordered this food item
+        const hasOrdered = await Order.findOne({
+            userId,
+            "items.foodId": foodId,
+            status: { $ne: "Cancelled" } // skip cancelled orders
+        });
 
+        if (!hasOrdered) {
+            return res.status(403).json({
+                message: "You can only review food items that you have ordered."
+            });
+        }
+
+        // ❌ Prevent duplicate reviews
+        const existingReview = await Review.findOne({ userId, foodId });
         if (existingReview) {
             return res.status(400).json({ message: "You have already reviewed this food item" });
         }
 
-        //  Create new review
+        // ✅ Create new review
         const newReview = new Review({ userId, foodId, rating, comment });
         await newReview.save();
 
@@ -28,7 +41,7 @@ export const addReview = async (req, res) => {
     }
 };
 
-//  Delete a Review (Only the user who created it)
+// ✅ Delete a Review (Only the user who created it)
 export const deleteReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
@@ -47,7 +60,7 @@ export const deleteReview = async (req, res) => {
     }
 };
 
-//  Get All Reviews for a Food Item
+// ✅ Get All Reviews for a Food Item
 export const getFoodReviews = async (req, res) => {
     try {
         const { foodId } = req.params;
@@ -67,7 +80,7 @@ export const getFoodReviews = async (req, res) => {
     }
 };
 
-//  Get Average Rating for a Food Item
+// ✅ Get Average Rating for a Food Item
 export const getAverageRating = async (req, res) => {
     try {
         const { foodId } = req.params;

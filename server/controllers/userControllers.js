@@ -17,7 +17,7 @@ export const checkUser = async (req, res) => {
     }
 };
 
-// ✅ User Signup (Stores JWT in Cookies)
+// ✅ User Signup
 export const userSignup = async (req, res) => {
     try {
         const { name, email, password, confirmPassword, mobile, role } = req.body;
@@ -57,16 +57,16 @@ export const userSignup = async (req, res) => {
             sameSite: "Lax",
         });
 
-        res.status(201).json({ 
-            message: "Signup successful", 
-            token, // ✅ Sending token
-            data: { 
+        res.status(201).json({
+            message: "Signup successful",
+            token,
+            data: {
                 id: newUser._id,
-                name: newUser.name, 
-                email: newUser.email, 
-                role: newUser.role, 
-                profilePic: newUser.profilePic 
-            } 
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+                profilePic: newUser.profilePic,
+            },
         });
     } catch (error) {
         console.error("🔥 Signup Error:", error);
@@ -90,7 +90,7 @@ export const userLogin = async (req, res) => {
 
         const passwordMatch = bcrypt.compareSync(password, user.password);
         if (!passwordMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(400).json({ message: "Incorrect password" });
         }
 
         const token = generateToken(user._id, user.role);
@@ -101,16 +101,16 @@ export const userLogin = async (req, res) => {
             sameSite: "Lax",
         });
 
-        res.json({ 
-            message: "Login successful", 
-            token, // ✅ Sending token
-            data: { 
+        res.json({
+            message: "Login successful",
+            token,
+            data: {
                 id: user._id,
-                name: user.name, 
-                email: user.email, 
-                role: user.role, 
-                profilePic: user.profilePic 
-            } 
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                profilePic: user.profilePic,
+            },
         });
     } catch (error) {
         console.error("🔥 Login Error:", error);
@@ -122,15 +122,21 @@ export const userLogin = async (req, res) => {
 export const userProfile = async (req, res) => {
     try {
         const userId = req.user.id;
-        const user = await User.findById(userId).select("-password");
+        const user = await User.findById(userId).select("name email role profilePic");
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        res.json({ 
-            message: "User profile retrieved", 
-            data: user 
+        res.json({
+            message: "User profile retrieved",
+            data: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                profilePic: user.profilePic,
+            },
         });
     } catch (error) {
         console.error("🔥 Profile Error:", error);
@@ -138,7 +144,7 @@ export const userProfile = async (req, res) => {
     }
 };
 
-// ✅ Update User Profile (Including Profile Picture)
+// ✅ Update User Profile (Name, Email, Mobile, ProfilePic)
 export const updateUserProfile = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -149,22 +155,24 @@ export const updateUserProfile = async (req, res) => {
         if (req.file) {
             const newProfilePic = `uploads/${req.file.filename}`;
 
-            // ✅ Get User Data to Remove Old Image
+            // ✅ Remove old profile picture
             const user = await User.findById(userId);
             if (user.profilePic && user.profilePic.startsWith("uploads/")) {
                 const oldImagePath = path.join("uploads", path.basename(user.profilePic));
                 if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath); // ✅ Delete old profile pic
+                    fs.unlinkSync(oldImagePath);
                 }
             }
             updateFields.profilePic = newProfilePic;
         }
 
-        const updatedUser = await User.findByIdAndUpdate(userId, updateFields, { new: true }).select("-password");
+        const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
+            new: true,
+        }).select("-password");
 
-        res.json({ 
-            message: "Profile updated successfully", 
-            data: updatedUser 
+        res.json({
+            message: "Profile updated successfully",
+            data: updatedUser,
         });
     } catch (error) {
         console.error("🔥 Profile Update Error:", error);
@@ -172,10 +180,48 @@ export const updateUserProfile = async (req, res) => {
     }
 };
 
+// ✅ Update User Address (New Function)
+export const updateUserAddress = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { houseName, city, landmark, pincode, phone } = req.body;
+
+        if (!houseName || !city || !landmark || !pincode || !phone) {
+            return res.status(400).json({ message: "All address fields are required" });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                address: {
+                    houseName,
+                    city,
+                    landmark,
+                    pincode,
+                    phone,
+                },
+            },
+            { new: true }
+        ).select("-password");
+
+        res.json({
+            message: "Address updated successfully",
+            data: updatedUser,
+        });
+    } catch (error) {
+        console.error("🔥 Address Update Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 // ✅ User Logout
 export const userLogout = async (req, res) => {
     try {
-        res.clearCookie("token", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax" });
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Lax",
+        });
         res.json({ message: "Logout successful" });
     } catch (error) {
         console.error("🔥 Logout Error:", error);

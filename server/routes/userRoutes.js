@@ -1,25 +1,38 @@
 import express from "express";
-import { authUser } from "../middlewares/authUser.js";
 import { upload } from "../middlewares/multer.js";
-import { 
-    userSignup, userLogin, userProfile, updateUserProfile, userLogout 
+import { authUser } from "../middlewares/authUser.js";
+
+import {
+    userSignup,
+    userLogin,
+    userProfile,
+    updateUserProfile,
+    userLogout,
+    checkUser,
+    updateUserAddress,
 } from "../controllers/userControllers.js";
 
 const router = express.Router();
 
-//  User Signup
+// ✅ User Signup
 router.post("/signup", userSignup);
 
-//  User Login
+// ✅ User Login
 router.post("/login", userLogin);
 
-//  Get User Profile
+// ✅ Check Auth
+router.get("/check-auth", authUser, checkUser);
+
+// ✅ Get User Profile
 router.get("/profile", authUser, userProfile);
 
-//  Update User Profile (Including Profile Picture)
+// ✅ Update User Profile (with optional profile picture)
 router.put("/update-profile", authUser, upload.single("profilePic"), updateUserProfile);
 
+// ✅ Update User Address
+router.put("/update-address", authUser, updateUserAddress);
 
+// ✅ User Logout
 router.get("/logout", authUser, userLogout);
 
 export { router as userRouter };
