@@ -51,10 +51,10 @@ export const userSignup = async (req, res) => {
             return res.status(500).json({ message: "Failed to generate token" });
         }
 
-        res.cookie("token", token, {
+        res.cookie("jwt", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "Lax",
+            sameSite: "None",
         });
 
         res.status(201).json({
@@ -95,10 +95,10 @@ export const userLogin = async (req, res) => {
 
         const token = generateToken(user._id, user.role);
 
-        res.cookie("token", token, {
+        res.cookie("jwt", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "Lax",
+            sameSite: "None",
         });
 
         res.json({
@@ -217,10 +217,10 @@ export const updateUserAddress = async (req, res) => {
 // ✅ User Logout
 export const userLogout = async (req, res) => {
     try {
-        res.clearCookie("token", {
+        res.clearCookie("jwt", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "Lax",
+            sameSite: "None",
         });
         res.json({ message: "Logout successful" });
     } catch (error) {
