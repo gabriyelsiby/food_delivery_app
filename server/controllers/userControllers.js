@@ -7,224 +7,211 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // ✅ Secure in production only
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ Lax for local, None for prod
+};
+
 // ✅ Check if User is Authenticated
 export const checkUser = async (req, res) => {
-    try {
-        res.json({ message: "User is authenticated", user: req.user });
-    } catch (error) {
-        console.error("🔥 Check User Error:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+  try {
+    res.json({ message: "User is authenticated", user: req.user });
+  } catch (error) {
+    console.error("🔥 Check User Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 // ✅ User Signup
 export const userSignup = async (req, res) => {
-    try {
-        const { name, email, password, confirmPassword, mobile, role } = req.body;
+  try {
+    const { name, email, password, confirmPassword, mobile, role } = req.body;
 
-        if (!name || !email || !password || !confirmPassword || !mobile) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-
-        if (password !== confirmPassword) {
-            return res.status(400).json({ message: "Passwords do not match" });
-        }
-
-        const userExist = await User.findOne({ email });
-        if (userExist) {
-            return res.status(400).json({ message: "User already exists" });
-        }
-
-        const hashedPassword = bcrypt.hashSync(password, 10);
-        const newUser = new User({
-            name,
-            email,
-            password: hashedPassword,
-            mobile,
-            role: role || "user",
-        });
-
-        await newUser.save();
-        const token = generateToken(newUser._id, newUser.role);
-
-        if (!token) {
-            return res.status(500).json({ message: "Failed to generate token" });
-        }
-
-        res.cookie("jwt", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
-        });
-
-        res.status(201).json({
-            message: "Signup successful",
-            token,
-            data: {
-                id: newUser._id,
-                name: newUser.name,
-                email: newUser.email,
-                role: newUser.role,
-                profilePic: newUser.profilePic,
-            },
-        });
-    } catch (error) {
-        console.error("🔥 Signup Error:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (!name || !email || !password || !confirmPassword || !mobile) {
+      return res.status(400).json({ message: "All fields are required" });
     }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    const userExist = await User.findOne({ email });
+    if (userExist) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      mobile,
+      role: role || "user",
+    });
+
+    await newUser.save();
+    const token = generateToken(newUser._id, newUser.role);
+
+    res.cookie("jwt", token, cookieOptions); // ✅ Use dynamic cookie settings
+
+    res.status(201).json({
+      message: "Signup successful",
+      token,
+      data: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        profilePic: newUser.profilePic,
+      },
+    });
+  } catch (error) {
+    console.error("🔥 Signup Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 // ✅ User Login
 export const userLogin = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const passwordMatch = bcrypt.compareSync(password, user.password);
-        if (!passwordMatch) {
-            return res.status(400).json({ message: "Incorrect password" });
-        }
-
-        const token = generateToken(user._id, user.role);
-
-        res.cookie("jwt", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
-        });
-
-        res.json({
-            message: "Login successful",
-            token,
-            data: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                profilePic: user.profilePic,
-            },
-        });
-    } catch (error) {
-        console.error("🔥 Login Error:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const passwordMatch = bcrypt.compareSync(password, user.password);
+    if (!passwordMatch) {
+      return res.status(400).json({ message: "Incorrect password" });
+    }
+
+    const token = generateToken(user._id, user.role);
+    res.cookie("jwt", token, cookieOptions); // ✅ Use dynamic cookie settings
+
+    res.json({
+      message: "Login successful",
+      token,
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePic: user.profilePic,
+      },
+    });
+  } catch (error) {
+    console.error("🔥 Login Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 // ✅ Get User Profile
 export const userProfile = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const user = await User.findById(userId).select("name email role profilePic");
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("name email role profilePic");
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        res.json({
-            message: "User profile retrieved",
-            data: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                profilePic: user.profilePic,
-            },
-        });
-    } catch (error) {
-        console.error("🔥 Profile Error:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    res.json({
+      message: "User profile retrieved",
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePic: user.profilePic,
+      },
+    });
+  } catch (error) {
+    console.error("🔥 Profile Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 // ✅ Update User Profile (Name, Email, Mobile, ProfilePic)
 export const updateUserProfile = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { name, email, mobile } = req.body;
-        let updateFields = { name, email, mobile };
+  try {
+    const userId = req.user.id;
+    const { name, email, mobile } = req.body;
+    let updateFields = { name, email, mobile };
 
-        // ✅ Handle Profile Picture Update
-        if (req.file) {
-            const newProfilePic = `uploads/${req.file.filename}`;
+    if (req.file) {
+      const newProfilePic = `uploads/${req.file.filename}`;
 
-            // ✅ Remove old profile picture
-            const user = await User.findById(userId);
-            if (user.profilePic && user.profilePic.startsWith("uploads/")) {
-                const oldImagePath = path.join("uploads", path.basename(user.profilePic));
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);
-                }
-            }
-            updateFields.profilePic = newProfilePic;
+      const user = await User.findById(userId);
+      if (user.profilePic && user.profilePic.startsWith("uploads/")) {
+        const oldImagePath = path.join("uploads", path.basename(user.profilePic));
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
         }
-
-        const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
-            new: true,
-        }).select("-password");
-
-        res.json({
-            message: "Profile updated successfully",
-            data: updatedUser,
-        });
-    } catch (error) {
-        console.error("🔥 Profile Update Error:", error);
-        res.status(500).json({ message: "Internal server error" });
+      }
+      updateFields.profilePic = newProfilePic;
     }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
+      new: true,
+    }).select("-password");
+
+    res.json({
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("🔥 Profile Update Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
-// ✅ Update User Address (New Function)
+// ✅ Update User Address
 export const updateUserAddress = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { houseName, city, landmark, pincode, phone } = req.body;
+  try {
+    const userId = req.user.id;
+    const { houseName, city, landmark, pincode, phone } = req.body;
 
-        if (!houseName || !city || !landmark || !pincode || !phone) {
-            return res.status(400).json({ message: "All address fields are required" });
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            {
-                address: {
-                    houseName,
-                    city,
-                    landmark,
-                    pincode,
-                    phone,
-                },
-            },
-            { new: true }
-        ).select("-password");
-
-        res.json({
-            message: "Address updated successfully",
-            data: updatedUser,
-        });
-    } catch (error) {
-        console.error("🔥 Address Update Error:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (!houseName || !city || !landmark || !pincode || !phone) {
+      return res.status(400).json({ message: "All address fields are required" });
     }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        address: {
+          houseName,
+          city,
+          landmark,
+          pincode,
+          phone,
+        },
+      },
+      { new: true }
+    ).select("-password");
+
+    res.json({
+      message: "Address updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("🔥 Address Update Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 // ✅ User Logout
 export const userLogout = async (req, res) => {
-    try {
-        res.clearCookie("jwt", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
-        });
-        res.json({ message: "Logout successful" });
-    } catch (error) {
-        console.error("🔥 Logout Error:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+  try {
+    res.clearCookie("jwt", cookieOptions); // ✅ Consistent clearing settings
+    res.json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("🔥 Logout Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
