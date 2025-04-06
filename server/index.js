@@ -16,7 +16,7 @@ connectDB();
 // ✅ Define allowed frontend URLs
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://food-delivery-app-mu-amber.vercel.app",
+  "https://food-delivery-user-rho.vercel.app",
   "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app", // ✅ Update with your latest frontend URL
 ];
 
