@@ -223,14 +223,15 @@ export const updateUserAddress = async (req, res) => {
   }
 };
 
-// ✅ User Logout
+// ✅ FIXED: User Logout (cookie expired)
 export const userLogout = async (req, res) => {
   try {
-    res.clearCookie("jwt", {
+    res.cookie("jwt", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: "/",
+      expires: new Date(0), // 💥 Expire the cookie immediately
     });
 
     res.json({ message: "Logout successful" });

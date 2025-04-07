@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import axios from "../config/axiosInstance";
+import axios from "../config/axiosInstance"; // Make sure this has withCredentials
 
 const AuthContext = createContext();
 
@@ -11,12 +11,19 @@ export const AuthProvider = ({ children }) => {
     const fetchProfile = async () => {
       try {
         const res = await axios.get("/user/profile", { withCredentials: true });
-        setUser(res.data);
+
+        // Only set user if valid data exists
+        if (res.data?.data) {
+          setUser(res.data.data);
+        } else {
+          setUser(null);
+        }
       } catch (err) {
-        console.error("Failed to load profile:", err);
+        console.error("❌ Failed to load profile:", err?.response?.data || err.message);
         setUser(null);
       }
     };
+
     fetchProfile();
   }, []);
 
@@ -24,9 +31,12 @@ export const AuthProvider = ({ children }) => {
   const login = async () => {
     try {
       const res = await axios.get("/user/profile", { withCredentials: true });
-      setUser(res.data);
+
+      if (res.data?.data) {
+        setUser(res.data.data);
+      }
     } catch (err) {
-      console.error("Failed to fetch user after login:", err);
+      console.error("❌ Failed to fetch user after login:", err);
     }
   };
 
@@ -35,8 +45,11 @@ export const AuthProvider = ({ children }) => {
     try {
       await axios.get("/user/logout", { withCredentials: true });
       setUser(null);
+
+      // Optional: redirect to login
+      window.location.href = "/login";
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("❌ Logout failed:", error);
     }
   };
 
