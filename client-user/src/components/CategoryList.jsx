@@ -1,36 +1,29 @@
-// components/CategoryList.jsx
-import React, { useEffect, useState } from "react";
-import axios from "../config/axiosInstance";
+// src/components/CategoryList.jsx
+import { useEffect, useState } from "react";
+import axiosInstance from "../config/axiosInstance";
 
-const CategoryList = ({ onCategorySelect }) => {
+const CategoryList = ({ onSelectCategory }) => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const fetchCategories = async () => {
-      try {
-        const res = await axios.get("/categories");
-        setCategories(res.data.data);
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-      }
+      const res = await axiosInstance.get("/food/categories");
+      setCategories(res.data.data);
     };
     fetchCategories();
   }, []);
 
   return (
-    <div className="mb-6">
-      <h2 className="text-2xl font-bold mb-4">Food Categories</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {categories.map((cat, i) => (
-          <button
-            key={i}
-            onClick={() => onCategorySelect(cat)}
-            className="bg-orange-100 hover:bg-orange-200 p-4 rounded-xl shadow-md"
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+    <div className="flex gap-4 overflow-x-auto p-4">
+      {categories.map((cat) => (
+        <div
+          key={cat._id}
+          onClick={() => onSelectCategory(cat.name)}
+          className="cursor-pointer bg-gray-100 hover:bg-gray-300 px-4 py-2 rounded-lg shadow"
+        >
+          {cat.name}
+        </div>
+      ))}
     </div>
   );
 };

@@ -1,27 +1,21 @@
 // src/components/FoodCard.jsx
 import React from "react";
-import { useCartStore } from "../store/cartStore";
 
-const FoodCard = ({ food }) => {
-  const addToCart = useCartStore((state) => state.addToCart);
-
+const FoodCard = ({ food, onAddToCart }) => {
   return (
-    <div className="bg-white rounded-xl shadow p-4">
+    <div className="w-full sm:w-64 bg-white rounded-xl shadow-md p-4">
       <img
-        src={food.image}
+        src={`http://localhost:5000/${food.imageUrl}`}
         alt={food.name}
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.src = "/fallback-food.jpg"; // fallback image in public folder
-        }}
-        className="w-full h-48 object-cover rounded-t-xl"
+        className="h-40 w-full object-cover rounded-md"
       />
-      <h2 className="text-lg font-semibold mt-2">{food.name}</h2>
-      <p className="text-sm text-gray-600">{food.description}</p>
-      <p className="mt-1 font-bold text-green-600">₹{food.price}</p>
+      <h2 className="text-xl font-semibold mt-2">{food.name}</h2>
+      <p className="text-gray-600">{food.description}</p>
+      <p className="text-sm text-gray-500 mt-1">From: {food.restaurant?.name || "Restaurant"}</p>
+      <p className="text-lg font-bold mt-1">₹{food.price}</p>
       <button
-        onClick={() => addToCart(food)}
-        className="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+        onClick={() => onAddToCart(food)}
+        className="mt-3 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
       >
         Add to Cart
       </button>
