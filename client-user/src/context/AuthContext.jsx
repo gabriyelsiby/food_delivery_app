@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import axios from "../config/axiosInstance"; // Make sure this has withCredentials
+import axios from "../config/axiosInstance";
+import toast from "react-hot-toast"; // ✅ Import toast
 
 const AuthContext = createContext();
 
@@ -12,7 +13,6 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await axios.get("/user/profile", { withCredentials: true });
 
-        // Only set user if valid data exists
         if (res.data?.data) {
           setUser(res.data.data);
         } else {
@@ -46,10 +46,12 @@ export const AuthProvider = ({ children }) => {
       await axios.get("/user/logout", { withCredentials: true });
       setUser(null);
 
-      // Optional: redirect to login
+      toast.success("Logout successful ✅"); // ✅ Show success toast
+
       window.location.href = "/login";
     } catch (error) {
       console.error("❌ Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
     }
   };
 
@@ -60,5 +62,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ✅ Custom hook to use auth context
 export const useAuth = () => useContext(AuthContext);

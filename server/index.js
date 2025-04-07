@@ -8,18 +8,17 @@ import path from "path";
 
 // ✅ Load environment variables
 dotenv.config();
+
 const app = express();
 const port = process.env.PORT || 5000;
 
 // ✅ Connect to MongoDB
 connectDB();
 
-// ✅ Allowed frontend URLs
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://food-delivery-user-rho.vercel.app",
-  "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app",
-];
+// ✅ Allowed frontend URLs from .env
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",")
+  : ["http://localhost:5173"];
 
 // ✅ CORS Configuration
 app.use(
