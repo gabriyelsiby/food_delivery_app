@@ -1,22 +1,70 @@
-// store/cartStore.js
 import { create } from "zustand";
-import axios from "../config/axiosInstance";
+import axios from "../config/axiosInstance"; // 👈 use your instance
 
-const useCartStore = create((set) => ({
-  cart: [],
-  addToCart: async (foodItem) => {
+export const useCartStore = create((set, get) => ({
+  cart: {
+    items: [],
+    totalPrice: 0,
+  },
+  loading: false,
+  error: null,
+
+  fetchCart: async () => {
+    set({ loading: true });
     try {
-      await axios.post("/cart/add", {
-        foodItemId: foodItem._id,
-        quantity: 1,
-      });
-      set((state) => ({
-        cart: [...state.cart, { ...foodItem, quantity: 1 }],
-      }));
+      const res = await axios.get("/cart");
+      set({ cart: res.data.data, loading: false, error: null });
     } catch (error) {
-      console.error("Error adding to cart", error);
+      set({
+        error: error.response?.data?.message || "Failed to fetch cart",
+        loading: false,
+      });
+    }
+  },
+
+  addToCart: async (foodId, quantity) => {
+    try {
+      await axios.post("/cart/add", { foodId, quantity });
+      get().fetchCart();
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Add to cart failed",
+      });
+    }
+  },
+
+  updateCart: async (foodId, quantity) => {
+    try {
+      await axios.put("/cart/update", { foodId, quantity });
+      get().fetchCart();
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Update failed",
+      });
+    }
+  },
+
+  removeFromCart: async (foodId) => {
+    try {
+      await axios.delete("/cart/remove", {
+        data: { foodId },
+      });
+      get().fetchCart();
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Remove failed",
+      });
+    }
+  },
+
+  clearCart: async () => {
+    try {
+      await axios.delete("/cart/clear");
+      get().fetchCart();
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Clear cart failed",
+      });
     }
   },
 }));
-
-export default useCartStore;
