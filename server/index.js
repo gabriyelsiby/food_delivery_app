@@ -4,20 +4,21 @@ import { apiRouter } from "./routes/apiRouter.js";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
 
 // ✅ Load environment variables
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ✅ Connect to Database
+// ✅ Connect to MongoDB
 connectDB();
 
-// ✅ Define allowed frontend URLs
+// ✅ Allowed frontend URLs
 const allowedOrigins = [
   "http://localhost:5173",
   "https://food-delivery-user-rho.vercel.app",
-  "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app", // ✅ Update with your latest frontend URL
+  "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app",
 ];
 
 // ✅ CORS Configuration
@@ -30,7 +31,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // ✅ Required for JWT & cookies
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -40,6 +41,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// ✅ Serve Static Files (e.g., uploaded images) - with full URL support
+const __dirname = path.resolve();
+app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
+
 // ✅ Test Route
 app.get("/", (req, res) => {
   res.send("🚀 Server is running!");
@@ -48,7 +53,7 @@ app.get("/", (req, res) => {
 // ✅ API Routes
 app.use("/api", apiRouter);
 
-// ✅ Handle Unknown Routes
+// ✅ Catch All Unknown Routes
 app.all("*", (req, res) => {
   res.status(404).json({ message: "❌ Endpoint does not exist" });
 });

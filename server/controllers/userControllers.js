@@ -7,11 +7,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
+
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-  path: "/", // ✅ Ensure the path is consistent for clearing cookies too
+  path: "/",
 };
 
 // ✅ Check if User is Authenticated
@@ -64,7 +66,9 @@ export const userSignup = async (req, res) => {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
-        profilePic: newUser.profilePic,
+        profilePic: newUser.profilePic
+          ? `${BASE_URL}/${newUser.profilePic}`
+          : null,
       },
     });
   } catch (error) {
@@ -103,7 +107,9 @@ export const userLogin = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        profilePic: user.profilePic,
+        profilePic: user.profilePic
+          ? `${BASE_URL}/${user.profilePic}`
+          : null,
       },
     });
   } catch (error) {
@@ -129,7 +135,9 @@ export const userProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        profilePic: user.profilePic,
+        profilePic: user.profilePic
+          ? `${BASE_URL}/${user.profilePic}`
+          : null,
       },
     });
   } catch (error) {
@@ -165,7 +173,15 @@ export const updateUserProfile = async (req, res) => {
 
     res.json({
       message: "Profile updated successfully",
-      data: updatedUser,
+      data: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        profilePic: updatedUser.profilePic
+          ? `${BASE_URL}/${updatedUser.profilePic}`
+          : null,
+      },
     });
   } catch (error) {
     console.error("🔥 Profile Update Error:", error);
@@ -207,14 +223,14 @@ export const updateUserAddress = async (req, res) => {
   }
 };
 
-// ✅ User Logout - Fixed
+// ✅ User Logout
 export const userLogout = async (req, res) => {
   try {
     res.clearCookie("jwt", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      path: "/", // ✅ Important for clearing properly
+      path: "/",
     });
 
     res.json({ message: "Logout successful" });
