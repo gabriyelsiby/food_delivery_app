@@ -4,16 +4,26 @@ import axios from "../config/axiosInstance"; // 👈 use your instance
 export const useCartStore = create((set, get) => ({
   cart: {
     items: [],
-    totalPrice: 0,
+    totalPrice: 0, // Ensure totalPrice is initialized
   },
   loading: false,
   error: null,
 
+  // Fetch cart and recalculate total price
   fetchCart: async () => {
     set({ loading: true });
     try {
       const res = await axios.get("/cart");
-      set({ cart: res.data.data, loading: false, error: null });
+      const updatedCart = res.data.data;
+      
+      // Recalculate total price after fetching the cart
+      const totalPrice = updatedCart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      
+      set({
+        cart: { ...updatedCart, totalPrice },
+        loading: false,
+        error: null,
+      });
     } catch (error) {
       set({
         error: error.response?.data?.message || "Failed to fetch cart",

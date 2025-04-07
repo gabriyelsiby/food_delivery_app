@@ -83,24 +83,25 @@ export const createCoupon = async (req, res) => {
     }
 };
 
-// Get All Coupons (Admin Only)
-export const getAllCoupons = async (req, res) => {
+// Get Available Active Coupons (User and Admin)
+export const getAvailableCoupons = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
 
-        const coupons = await Coupon.find()
+        // Find active coupons
+        const coupons = await Coupon.find({ isActive: true })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
 
-        const total = await Coupon.countDocuments();
+        const total = await Coupon.countDocuments({ isActive: true });
 
-        res.json({ 
-            message: "Coupons retrieved successfully", 
-            data: coupons, 
-            pagination: { total, page: parseInt(page), limit: parseInt(limit) } 
+        res.json({
+            message: "Active coupons retrieved successfully",
+            data: coupons,
+            pagination: { total, page: parseInt(page), limit: parseInt(limit) }
         });
     } catch (error) {
-        console.error("Get Coupons Error:", error);
+        console.error("Get Available Coupons Error:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
@@ -135,9 +136,9 @@ export const toggleCouponStatus = async (req, res) => {
         coupon.isActive = !coupon.isActive;
         await coupon.save();
 
-        res.json({ 
-            message: `Coupon is now ${coupon.isActive ? "active" : "inactive"}`, 
-            data: coupon 
+        res.json({
+            message: `Coupon is now ${coupon.isActive ? "active" : "inactive"}`,
+            data: coupon
         });
     } catch (error) {
         console.error("Toggle Coupon Status Error:", error);

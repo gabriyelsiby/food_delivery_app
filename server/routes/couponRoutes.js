@@ -2,7 +2,7 @@ import express from "express";
 import { 
     applyCoupon, 
     createCoupon, 
-    getAllCoupons, 
+    getAvailableCoupons, 
     deleteCoupon, 
     toggleCouponStatus 
 } from "../controllers/couponControllers.js";
@@ -17,13 +17,13 @@ router.post("/apply", authUser, applyCoupon);
 // Create a new coupon (Admin)
 router.post("/create", authAdmin, createCoupon);
 
-// Get all coupons (Admin)
-router.get("/all", authAdmin, getAllCoupons);
+// Get Available Coupons (User)
+router.get("/available", authUser, getAvailableCoupons);  // Updated endpoint
 
 // Delete a coupon (Admin)
 router.delete("/delete/:couponId", authAdmin, deleteCoupon);
 
-// Toggle coupon status active/inactive (Admin)
+// Toggle coupon status active/inactive (Admin Only)
 router.patch("/toggle-status/:couponId", authAdmin, toggleCouponStatus);
 
 export { router as couponRouter };
