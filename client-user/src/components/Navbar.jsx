@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    setMobileMenuOpen(false);
-    navigate("/login");
+    setMobileMenuOpen(false); // just close the menu
   };
 
   const navLinks = [

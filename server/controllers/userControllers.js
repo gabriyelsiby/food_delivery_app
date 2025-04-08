@@ -223,19 +223,19 @@ export const updateUserAddress = async (req, res) => {
   }
 };
 
-// ✅ FIXED: User Logout (using clearCookie)
 export const userLogout = async (req, res) => {
   try {
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      path: "/",
-    });
+    // Use raw Set-Cookie header to clear cookie properly
+    res.setHeader("Set-Cookie", `jwt=; Max-Age=0; Path=/; HttpOnly; ${
+      process.env.NODE_ENV === "production"
+        ? "Secure; SameSite=None"
+        : "SameSite=Lax"
+    }`);
 
-    res.json({ message: "Logout successful" });
+    res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("🔥 Logout Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
