@@ -9,6 +9,7 @@ dotenv.config();
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
+// ✅ Cookie Options for Cross-Site Auth (Vercel-friendly)
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
@@ -223,14 +224,15 @@ export const updateUserAddress = async (req, res) => {
   }
 };
 
+// ✅ User Logout (Vercel-friendly)
 export const userLogout = async (req, res) => {
   try {
-    // Use raw Set-Cookie header to clear cookie properly
-    res.setHeader("Set-Cookie", `jwt=; Max-Age=0; Path=/; HttpOnly; ${
-      process.env.NODE_ENV === "production"
-        ? "Secure; SameSite=None"
-        : "SameSite=Lax"
-    }`);
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      path: "/",
+    });
 
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {
@@ -238,4 +240,3 @@ export const userLogout = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
