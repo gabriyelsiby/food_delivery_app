@@ -9,8 +9,8 @@ import { AuthProvider } from "./context/AuthContext";
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter> {/* ✅ Move this above AuthProvider */}
+      <AuthProvider>
         <Routes>
           {UserRoutes}
           {AdminRoutes}
@@ -19,8 +19,8 @@ function App() {
         {/* Toasts */}
         <Toaster position="top-center" reverseOrder={false} />
         <ToastContainer position="top-center" autoClose={3000} />
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

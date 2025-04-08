@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "../config/axiosInstance";
 import toast from "react-hot-toast";
 
@@ -7,17 +8,18 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // ✅ Fetch auth status on initial load
+  // ✅ Re-run auth check on every route change
   useEffect(() => {
     fetchAuthStatus();
-  }, []);
+  }, [location.pathname]);
 
   const fetchAuthStatus = async () => {
     setAuthLoading(true);
     try {
       const res = await axios.get("/user/check-auth", { withCredentials: true });
-
       if (res.data?.user) {
         setUser(res.data.user);
       } else {
@@ -43,7 +45,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       toast.success("Logout successful ✅");
-      window.location.href = "/login";
+      navigate("/login", { replace: true }); // 👈 prevents going back
     }
   };
 
@@ -59,7 +61,7 @@ export const AuthProvider = ({ children }) => {
         isUser,
         login,
         logout,
-        authLoading, // optional: for conditional UI
+        authLoading,
       }}
     >
       {children}
