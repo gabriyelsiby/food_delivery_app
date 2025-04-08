@@ -20,9 +20,15 @@ const UserLogin = () => {
         withCredentials: true,
       });
 
-      await login(); // ✅ This fetches and sets the profile
-      toast.success("Login successful");
-      navigate("/"); // Redirect to home or dashboard
+      await login(); // Fetch and set the user profile
+      toast.success("Login successful ✅");
+
+      // Check role and navigate accordingly
+      if (res.data?.data?.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       const message = err.response?.data?.message || "Login failed";
       toast.error(message === "Incorrect password" ? "Incorrect password" : message);
@@ -31,7 +37,7 @@ const UserLogin = () => {
 
   return (
     <div className="max-w-md mx-auto mt-10 bg-white shadow-md rounded-xl p-6">
-      <h2 className="text-2xl font-semibold mb-4 text-center">User Login</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-center">Login</h2>
       <form onSubmit={handleLogin} className="space-y-4">
         <input
           type="email"

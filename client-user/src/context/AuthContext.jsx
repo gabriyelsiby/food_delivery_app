@@ -1,62 +1,67 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "../config/axiosInstance";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  // ✅ Fetch user profile on app load
+  // ✅ Fetch auth status on initial load
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get("/user/profile", { withCredentials: true });
-
-        if (res.data?.data) {
-          setUser(res.data.data);
-        } else {
-          setUser(null);
-        }
-      } catch (err) {
-        console.error("❌ Failed to load profile:", err?.response?.data || err.message);
-        setUser(null);
-      }
-    };
-
-    fetchProfile();
+    fetchAuthStatus();
   }, []);
 
-  // ✅ Fetch and store user after login or signup
-  const login = async () => {
+  const fetchAuthStatus = async () => {
+    setAuthLoading(true);
     try {
-      const res = await axios.get("/user/profile", { withCredentials: true });
+      const res = await axios.get("/user/check-auth", { withCredentials: true });
 
-      if (res.data?.data) {
-        setUser(res.data.data);
+      if (res.data?.user) {
+        setUser(res.data.user);
+      } else {
+        setUser(null);
       }
     } catch (err) {
-      console.error("❌ Failed to fetch user after login:", err);
+      console.error("❌ Failed to check auth:", err?.response?.data || err.message);
+      setUser(null);
+    } finally {
+      setAuthLoading(false);
     }
   };
 
-  // ✅ Logout user and clear session
+  const login = async () => {
+    await fetchAuthStatus();
+  };
+
   const logout = async () => {
     try {
       await axios.get("/user/logout", { withCredentials: true });
-      setUser(null);
-
-      toast.success("Logout successful ✅"); // ✅ Show success toast
-
-      window.location.href = "/login";
     } catch (error) {
-      console.error("❌ Logout failed:", error);
-      toast.error("Logout failed. Please try again.");
+      console.warn("⚠️ Logout issue:", error.response?.data || error.message);
+    } finally {
+      setUser(null);
+      toast.success("Logout successful ✅");
+      window.location.href = "/login";
     }
   };
 
+  const isAdmin = user?.role === "admin";
+  const isUser = user?.role === "user";
+
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoggedIn: !!user,
+        isAdmin,
+        isUser,
+        login,
+        logout,
+        authLoading, // optional: for conditional UI
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
