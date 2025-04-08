@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "../config/axiosInstance";
+import axiosInstance from "../config/axiosInstance"; // ✅ Correct import
 import toast from "react-hot-toast";
 
 const AuthContext = createContext();
@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   const fetchAuthStatus = async () => {
     setAuthLoading(true);
     try {
-      const res = await axios.get("/user/check-auth", { withCredentials: true });
+      const res = await axiosInstance.get("/user/check-auth");
       if (res.data?.user) {
         setUser(res.data.user);
       } else {
@@ -39,13 +39,13 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.get("/user/logout", { withCredentials: true });
+      await axiosInstance.get("/user/logout");
     } catch (error) {
       console.warn("⚠️ Logout issue:", error.response?.data || error.message);
     } finally {
       setUser(null);
       toast.success("Logout successful ✅");
-      navigate("/login", { replace: true }); // 👈 prevents going back
+      navigate("/login", { replace: true }); // 👈 prevents back nav
     }
   };
 
