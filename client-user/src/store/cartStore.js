@@ -1,80 +1,77 @@
 import { create } from "zustand";
-import axios from "../config/axiosInstance"; // 👈 use your instance
+import axios from "../config/axiosInstance";
+import { toast } from "react-hot-toast";
 
 export const useCartStore = create((set, get) => ({
   cart: {
     items: [],
-    totalPrice: 0, // Ensure totalPrice is initialized
+    totalPrice: 0,
   },
   loading: false,
   error: null,
 
-  // Fetch cart and recalculate total price
   fetchCart: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
-      const res = await axios.get("/cart");
-      const updatedCart = res.data.data;
-      
-      // Recalculate total price after fetching the cart
-      const totalPrice = updatedCart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      
+      const { data } = await axios.get("/cart");
+      const { items, totalPrice } = data.data;
+
       set({
-        cart: { ...updatedCart, totalPrice },
+        cart: { items, totalPrice },
         loading: false,
-        error: null,
       });
     } catch (error) {
-      set({
-        error: error.response?.data?.message || "Failed to fetch cart",
-        loading: false,
-      });
+      const message = error.response?.data?.message || "Failed to fetch cart";
+      toast.error(message);
+      set({ loading: false, error: message });
     }
   },
 
-  addToCart: async (foodId, quantity) => {
+  addToCart: async (foodId, quantity = 1) => {
     try {
       await axios.post("/cart/add", { foodId, quantity });
-      get().fetchCart();
+      await get().fetchCart();
+      toast.success("Added to cart");
     } catch (error) {
-      set({
-        error: error.response?.data?.message || "Add to cart failed",
-      });
+      const message = error.response?.data?.message || "Add to cart failed";
+      toast.error(message);
+      set({ error: message });
     }
   },
 
   updateCart: async (foodId, quantity) => {
     try {
       await axios.put("/cart/update", { foodId, quantity });
-      get().fetchCart();
+      await get().fetchCart();
+      toast.success("Cart updated");
     } catch (error) {
-      set({
-        error: error.response?.data?.message || "Update failed",
-      });
+      const message = error.response?.data?.message || "Update failed";
+      toast.error(message);
+      set({ error: message });
     }
   },
 
   removeFromCart: async (foodId) => {
     try {
-      await axios.delete("/cart/remove", {
-        data: { foodId },
-      });
-      get().fetchCart();
+      await axios.delete("/cart/remove", { data: { foodId } });
+      await get().fetchCart();
+      toast.success("Item removed from cart");
     } catch (error) {
-      set({
-        error: error.response?.data?.message || "Remove failed",
-      });
+      const message = error.response?.data?.message || "Remove failed";
+      toast.error(message);
+      set({ error: message });
     }
   },
 
   clearCart: async () => {
     try {
       await axios.delete("/cart/clear");
-      get().fetchCart();
+      await get().fetchCart();
+      toast.success("Cart cleared");
     } catch (error) {
-      set({
-        error: error.response?.data?.message || "Clear cart failed",
-      });
+      const message = error.response?.data?.message || "Clear cart failed";
+      toast.error(message);
+      set({ error: message });
     }
   },
 }));

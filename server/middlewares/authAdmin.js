@@ -2,12 +2,14 @@ import jwt from "jsonwebtoken";
 
 export const authAdmin = (req, res, next) => {
     try {
-        const { token } = req.cookies;
+        const token = req.cookies.jwt;  // ✅ fixed this line
+
         if (!token) {
             return res.status(401).json({ message: "Admin not authorized" });
         }
 
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
         if (!decodedToken || decodedToken.role !== "admin") {
             return res.status(401).json({ message: "Admin not authorized" });
         }

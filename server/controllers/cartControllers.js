@@ -1,20 +1,33 @@
 import { Cart } from "../models/cartModel.js";
 import { FoodItem } from "../models/foodItemModel.js";
 
-// Add or Update Food in Cart
+// Helper: Recalculate Total Price
+const calculateCartTotal = async (cart) => {
+    let total = 0;
+    for (const item of cart.items) {
+        const food = await FoodItem.findById(item.foodId);
+        if (food) {
+            item.price = food.price;
+            total += item.quantity * food.price;
+        }
+    }
+    cart.totalPrice = total;
+};
+
 export const addToCart = async (req, res) => {
     try {
         const userId = req.user?.id;
         const { foodId, quantity } = req.body;
 
         if (!userId) return res.status(401).json({ message: "Unauthorized user" });
-        if (!foodId || quantity <= 0) return res.status(400).json({ message: "Valid Food ID and quantity are required" });
+        if (!foodId || quantity <= 0) {
+            return res.status(400).json({ message: "Valid Food ID and quantity are required" });
+        }
 
         const foodItem = await FoodItem.findById(foodId);
         if (!foodItem) return res.status(404).json({ message: "Food item not found" });
 
         let cart = await Cart.findOne({ userId });
-
         if (!cart) cart = new Cart({ userId, items: [] });
 
         const existingItem = cart.items.find(item => item.foodId.equals(foodId));
@@ -24,7 +37,7 @@ export const addToCart = async (req, res) => {
             cart.items.push({ foodId, quantity, price: foodItem.price });
         }
 
-        await cart.calculateTotalPrice();
+        await calculateCartTotal(cart);
         await cart.save();
 
         res.status(200).json({ message: "Food item added to cart", data: cart });
@@ -34,24 +47,42 @@ export const addToCart = async (req, res) => {
     }
 };
 
-// Get Cart Details
 export const getCart = async (req, res) => {
     try {
         const userId = req.user?.id;
         if (!userId) return res.status(401).json({ message: "Unauthorized user" });
 
-        const cart = await Cart.findOne({ userId }).populate("items.foodId", "name price imageUrl");
+        const cart = await Cart.findOne({ userId });
         if (!cart || cart.items.length === 0) {
-            return res.status(404).json({ message: "Cart is empty" });
+            return res.status(200).json({
+                message: "Cart is empty",
+                data: {
+                    items: [],
+                    totalPrice: 0,
+                },
+            });
         }
 
-        const formattedItems = cart.items.map(item => ({
-            foodId: item.foodId._id,
-            name: item.foodId.name,
-            imageUrl: item.foodId.imageUrl,
-            price: item.price,
-            quantity: item.quantity,
-        }));
+        const formattedItems = await Promise.all(
+            cart.items.map(async (item) => {
+                const food = await FoodItem.findById(item.foodId).populate("restaurant", "name logoUrl");
+
+                return {
+                    foodId: food._id,
+                    name: food.name,
+                    imageUrl: food.imageUrl,
+                    price: item.price,
+                    quantity: item.quantity,
+                    restaurantId: food.restaurant
+                        ? {
+                              _id: food.restaurant._id,
+                              name: food.restaurant.name,
+                              logoUrl: food.restaurant.logoUrl || null,
+                          }
+                        : null,
+                };
+            })
+        );
 
         res.status(200).json({
             message: "Cart retrieved successfully",
@@ -66,14 +97,15 @@ export const getCart = async (req, res) => {
     }
 };
 
-// Update Cart Item Quantity
 export const updateCart = async (req, res) => {
     try {
         const userId = req.user?.id;
         const { foodId, quantity } = req.body;
 
         if (!userId) return res.status(401).json({ message: "Unauthorized user" });
-        if (!foodId || quantity < 0) return res.status(400).json({ message: "Valid Food ID and quantity are required" });
+        if (!foodId || quantity < 0) {
+            return res.status(400).json({ message: "Valid Food ID and quantity are required" });
+        }
 
         const cart = await Cart.findOne({ userId });
         if (!cart) return res.status(404).json({ message: "Cart not found" });
@@ -87,7 +119,7 @@ export const updateCart = async (req, res) => {
             cart.items[itemIndex].quantity = quantity;
         }
 
-        await cart.calculateTotalPrice();
+        await calculateCartTotal(cart);
         await cart.save();
 
         res.status(200).json({ message: "Cart updated successfully", data: cart });
@@ -97,7 +129,6 @@ export const updateCart = async (req, res) => {
     }
 };
 
-// Remove Food from Cart
 export const removeFromCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -111,7 +142,7 @@ export const removeFromCart = async (req, res) => {
 
         cart.items = cart.items.filter(item => !item.foodId.equals(foodId));
 
-        await cart.calculateTotalPrice();
+        await calculateCartTotal(cart);
         await cart.save();
 
         res.status(200).json({ message: "Food item removed from cart", data: cart });
@@ -121,7 +152,6 @@ export const removeFromCart = async (req, res) => {
     }
 };
 
-// Clear Entire Cart
 export const clearCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -132,6 +162,7 @@ export const clearCart = async (req, res) => {
 
         cart.items = [];
         cart.totalPrice = 0;
+
         await cart.save();
 
         res.status(200).json({ message: "Cart cleared successfully", data: cart });

@@ -11,12 +11,11 @@ import { couponRouter } from "./couponRoutes.js";
 
 const router = express.Router();
 
-
 router.use("/user", userRouter);
 router.use("/restaurant", restaurantRouter);
 router.use("/food", foodRouter);
 router.use("/cart", cartRouter);
-router.use("/order", orderRouter);
+router.use("/orders", orderRouter); // ✅ fixed from /order to /orders
 router.use("/review", reviewRouter);
 router.use("/payment", paymentRouter);
 router.use("/delivery", deliveryRouter); 

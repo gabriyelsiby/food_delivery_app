@@ -1,25 +1,47 @@
 import express from "express";
-import { placeOrder, getOrderDetails, getUserOrders, updateOrderStatus, cancelOrder } from "../controllers/orderControllers.js";
+import {
+  placeOrder,
+  getOrderDetails,
+  getUserOrders,
+  updateOrderStatus,
+  assignOrderToDeliveryPartner,
+  cancelOrder,
+} from "../controllers/orderControllers.js";
+
 import { authUser } from "../middlewares/authUser.js";
 import { authRestaurant } from "../middlewares/authRestaurant.js";
+import { authAdmin } from "../middlewares/authAdmin.js";
 
 const router = express.Router();
 
-// Place a new order (User only)
-router.post("/place-order", authUser, placeOrder);
-// Add this route to support the frontend code
-router.post("/", authUser, placeOrder);  // This supports the /orders endpoint in your React code
+/**
+ * USER ROUTES
+ */
+
+// Get all orders of the user (should come first to avoid conflict with /:orderId)
+router.get("/user/all", authUser, getUserOrders); // GET /orders/user/all
+
+// Place a new order
+router.post("/", authUser, placeOrder); // POST /orders
 
 // Get details of a specific order
-router.get("/order-details/:orderId", authUser, getOrderDetails);
+router.get("/:orderId", authUser, getOrderDetails); // GET /orders/:orderId
 
-// Get all orders for a user
-router.get("/user-orders", authUser, getUserOrders);
+// Cancel an order
+router.delete("/:orderId", authUser, cancelOrder); // DELETE /orders/:orderId
 
-// Update order status (Only restaurant)
-router.put("/update-order/:orderId", authRestaurant, updateOrderStatus);
+/**
+ * RESTAURANT ROUTES
+ */
 
-// Cancel an order (Only user)
-router.delete("/cancel-order/:orderId", authUser, cancelOrder);
+// Update order status
+router.put("/:orderId/status", authRestaurant, updateOrderStatus); // PUT /orders/:orderId/status
+
+/**
+ * ADMIN ROUTES
+ */
+
+// Assign a delivery partner to an order
+router.put("/:orderId/assign", authAdmin, assignOrderToDeliveryPartner); // PUT /orders/:orderId/assign
 
 export { router as orderRouter };

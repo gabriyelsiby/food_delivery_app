@@ -14,7 +14,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axiosInstance.get("order/user-orders"); // Fetch orders from backend
+      const response = await axiosInstance.get("orders/user/all"); // Fetch orders from backend
       setOrders(response.data.data); // Assuming 'data' holds the orders array
     } catch (err) {
       setError("Failed to load orders. Please try again.");
