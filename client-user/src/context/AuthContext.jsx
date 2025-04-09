@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axiosInstance.get("/user/logout");
+      await axiosInstance.get("/user/logout", { withCredentials: true }); // Ensure cookies are included
     } catch (error) {
       console.warn("⚠️ Logout issue:", error.response?.data || error.message);
     } finally {

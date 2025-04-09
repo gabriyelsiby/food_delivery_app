@@ -256,6 +256,7 @@ export const userLogout = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: "/",
+      expires: new Date(0), // Explicitly set the cookie to expire in the past
       ...(prodCookieDomain && { domain: prodCookieDomain }),
     });
 
