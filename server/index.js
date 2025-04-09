@@ -15,7 +15,7 @@ const port = process.env.PORT || 5000;
 // ✅ Connect to MongoDB
 connectDB();
 
-// ✅ Allowed frontend URLs from .env
+// ✅ Get allowed origins from .env and convert to array
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",")
   : ["http://localhost:5173"];
@@ -24,13 +24,14 @@ const allowedOrigins = process.env.CORS_ORIGIN
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true,
+    credentials: true, // Required for sending cookies
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -40,7 +41,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Serve Static Files (e.g., uploaded images) - with full URL support
+// ✅ Serve Static Files (e.g., uploaded images)
 const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
