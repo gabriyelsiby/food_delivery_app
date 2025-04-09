@@ -1,8 +1,9 @@
+// restaurantControllers.js
 import { Restaurant } from "../models/restaurantModel.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/token.js";
 
-//  Register a new restaurant
+// Register a new restaurant
 export const registerRestaurant = async (req, res) => {
     try {
         const { name, email, password, location, cuisine, phone, isOpen } = req.body;
@@ -30,12 +31,15 @@ export const registerRestaurant = async (req, res) => {
         await newRestaurant.save();
         const token = generateToken(newRestaurant._id, "restaurant");
 
-        //  Store token in cookies
         res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "Lax" });
 
         res.status(201).json({ 
             message: "Restaurant registered successfully", 
-            data: { name: newRestaurant.name, email: newRestaurant.email, location: newRestaurant.location } 
+            data: {
+                name: newRestaurant.name,
+                email: newRestaurant.email,
+                location: newRestaurant.location
+            }
         });
     } catch (error) {
         console.error("Restaurant Registration Error:", error);
@@ -43,7 +47,7 @@ export const registerRestaurant = async (req, res) => {
     }
 };
 
-//  Restaurant Login
+// Restaurant Login
 export const restaurantLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -64,12 +68,15 @@ export const restaurantLogin = async (req, res) => {
 
         const token = generateToken(restaurant._id, "restaurant");
 
-        //  Store token in cookies
         res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "Lax" });
 
-        res.json({ 
-            message: "Login successful", 
-            data: { name: restaurant.name, email: restaurant.email, location: restaurant.location } 
+        res.json({
+            message: "Login successful",
+            data: {
+                name: restaurant.name,
+                email: restaurant.email,
+                location: restaurant.location
+            }
         });
     } catch (error) {
         console.error("Restaurant Login Error:", error);
@@ -77,7 +84,7 @@ export const restaurantLogin = async (req, res) => {
     }
 };
 
-//  Get Restaurant Profile
+// Get Restaurant Profile
 export const restaurantProfile = async (req, res) => {
     try {
         const restaurantId = req.user.id;
@@ -87,8 +94,8 @@ export const restaurantProfile = async (req, res) => {
             return res.status(404).json({ message: "Restaurant not found" });
         }
 
-        res.json({ 
-            message: "Restaurant profile retrieved", 
+        res.json({
+            message: "Restaurant profile retrieved",
             data: restaurant
         });
     } catch (error) {
@@ -97,32 +104,31 @@ export const restaurantProfile = async (req, res) => {
     }
 };
 
-//  Update Restaurant Profile
+// Update Restaurant Profile
 export const updateRestaurantProfile = async (req, res) => {
     try {
-        const restaurantId = req.user.id;  //  Extract restaurant ID from JWT
+        const restaurantId = req.user.id;
         const { name, email, location, cuisine, phone, isOpen } = req.body;
 
         const updatedRestaurant = await Restaurant.findByIdAndUpdate(
             restaurantId,
             { name, email, location, cuisine, phone, isOpen },
             { new: true, runValidators: true }
-        ).select("-password"); //  Exclude password from response
+        ).select("-password");
 
         if (!updatedRestaurant) {
             return res.status(404).json({ message: "Restaurant not found" });
         }
 
-        res.json({ 
-            message: "Profile updated successfully", 
-            data: updatedRestaurant 
+        res.json({
+            message: "Profile updated successfully",
+            data: updatedRestaurant
         });
     } catch (error) {
         console.error("Profile Update Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
-
 
 // ✅ Get all restaurants (optionally filter by cuisine)
 export const getRestaurants = async (req, res) => {
@@ -131,7 +137,7 @@ export const getRestaurants = async (req, res) => {
 
         let query = {};
         if (cuisine) {
-            query.cuisine = { $regex: new RegExp(cusine, "i") }; // case-insensitive match
+            query.cuisine = { $regex: new RegExp(cuisine, "i") }; // case-insensitive
         }
 
         const restaurants = await Restaurant.find(query).select("-password");
@@ -142,7 +148,7 @@ export const getRestaurants = async (req, res) => {
     }
 };
 
-//  Logout Restaurant
+// Logout Restaurant
 export const restaurantLogout = async (req, res) => {
     try {
         res.clearCookie("token", { httpOnly: true, secure: false, sameSite: "Lax" });

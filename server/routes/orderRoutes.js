@@ -6,6 +6,8 @@ import {
   updateOrderStatus,
   assignOrderToDeliveryPartner,
   cancelOrder,
+  getAllOrders,
+  getAllDeliveryPartners,
 } from "../controllers/orderControllers.js";
 
 import { authUser } from "../middlewares/authUser.js";
@@ -43,5 +45,11 @@ router.put("/:orderId/status", authRestaurant, updateOrderStatus); // PUT /order
 
 // Assign a delivery partner to an order
 router.put("/:orderId/assign", authAdmin, assignOrderToDeliveryPartner); // PUT /orders/:orderId/assign
+
+// Get all orders
+router.get("/admin/all", authAdmin, getAllOrders); // GET /orders/admin/all
+
+// Get all delivery partners
+router.get("/admin/delivery-partners", authAdmin, getAllDeliveryPartners); // GET /orders/admin/delivery-partners
 
 export { router as orderRouter };

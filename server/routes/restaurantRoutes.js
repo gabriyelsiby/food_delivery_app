@@ -1,11 +1,11 @@
 import express from "express";
-import { 
-    registerRestaurant, 
-    restaurantLogin, 
-    restaurantProfile, 
-    updateRestaurantProfile,  
-    restaurantLogout, 
-    getRestaurants         
+import {
+    registerRestaurant,
+    restaurantLogin,
+    restaurantProfile,
+    updateRestaurantProfile,
+    restaurantLogout,
+    getRestaurants
 } from "../controllers/restaurantControllers.js";
 
 import { authRestaurant } from "../middlewares/authRestaurant.js";
@@ -21,9 +21,12 @@ router.post("/login", restaurantLogin);
 // Get restaurant profile (Only for logged-in restaurant owners)
 router.get("/profile", authRestaurant, restaurantProfile);
 
-//  Edit restaurant profile (Only for logged-in restaurant owners)
+// Edit restaurant profile
 router.put("/update", authRestaurant, updateRestaurantProfile);
-router.get("/restaurants", getRestaurants);
+
+// ✅ FIXED: Clean get all restaurants route
+router.get("/", getRestaurants);
+
 // Logout restaurant
 router.get("/logout", restaurantLogout);
 

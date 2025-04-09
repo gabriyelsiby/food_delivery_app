@@ -14,9 +14,9 @@ const AdminNavbar = () => {
 
   const navLinks = [
     { name: "Dashboard", path: "/admin/dashboard" },
-    { name: "Restaurants", path: "/admin/restaurants" },
-    { name: "Coupons", path: "/admin/coupons" },
-    { name: "Orders", path: "/admin/orders" },
+    { name: "Restaurants", path: "/admin/Restaurants" },
+    { name: "Coupons", path: "/admin/Coupons" },
+    { name: "Orders", path: "/admin/Orders" },
   ];
 
   return (
