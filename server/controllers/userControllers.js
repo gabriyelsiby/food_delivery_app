@@ -9,18 +9,17 @@ dotenv.config();
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
-// Determine if we're in production
-const isProd = process.env.NODE_ENV === "production";
-
-// When in production, set the cookie domain to your deployed backend domain.
-// Locally, do not set a domain.
-const prodCookieDomain = isProd ? "food-delivery-app-server-sooty.vercel.app" : undefined;
+// Set the production cookie domain – adjust this to your backend's domain if needed.
+const prodCookieDomain =
+  process.env.NODE_ENV === "production"
+    ? "food-delivery-app-server-sooty.vercel.app"
+    : undefined;
 
 // ✅ Cookie Options for Cross-Site Auth (Vercel-friendly)
 const cookieOptions = {
   httpOnly: true,
-  secure: isProd, // In production, secure cookies are required; in development, this is false.
-  sameSite: isProd ? "None" : "Lax",
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   path: "/",
   ...(prodCookieDomain && { domain: prodCookieDomain }),
 };
@@ -69,7 +68,7 @@ export const userSignup = async (req, res) => {
     await newUser.save();
     const token = generateToken(newUser._id, newUser.role);
 
-    // Set the JWT cookie
+    // Set cookie with all options including domain in production.
     res.cookie("jwt", token, cookieOptions);
 
     res.status(201).json({
@@ -113,7 +112,7 @@ export const userLogin = async (req, res) => {
     }
 
     const token = generateToken(user._id, user.role);
-    // Set the cookie on login as well with matching options.
+    // Set cookie with proper options
     res.cookie("jwt", token, cookieOptions);
 
     res.json({
@@ -251,11 +250,11 @@ export const updateUserAddress = async (req, res) => {
 // -------------------------
 export const userLogout = async (req, res) => {
   try {
-    // Clear the cookie with the same options used when setting it.
+    // Clear the cookie with matching options, including domain if set.
     res.clearCookie("jwt", {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "None" : "Lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: "/",
       ...(prodCookieDomain && { domain: prodCookieDomain }),
     });
