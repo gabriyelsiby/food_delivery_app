@@ -9,15 +9,24 @@ dotenv.config();
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
+// Set the production cookie domain – adjust this to your backend's domain if needed.
+const prodCookieDomain =
+  process.env.NODE_ENV === "production"
+    ? "food-delivery-app-server-sooty.vercel.app"
+    : undefined;
+
 // ✅ Cookie Options for Cross-Site Auth (Vercel-friendly)
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   path: "/",
+  ...(prodCookieDomain && { domain: prodCookieDomain }),
 };
 
-// ✅ Check if User is Authenticated
+// -------------------------
+// Check if User is Authenticated
+// -------------------------
 export const checkUser = async (req, res) => {
   try {
     res.json({ message: "User is authenticated", user: req.user });
@@ -27,7 +36,9 @@ export const checkUser = async (req, res) => {
   }
 };
 
-// ✅ User Signup
+// -------------------------
+// User Signup
+// -------------------------
 export const userSignup = async (req, res) => {
   try {
     const { name, email, password, confirmPassword, mobile, role } = req.body;
@@ -57,6 +68,7 @@ export const userSignup = async (req, res) => {
     await newUser.save();
     const token = generateToken(newUser._id, newUser.role);
 
+    // Set cookie with all options including domain in production.
     res.cookie("jwt", token, cookieOptions);
 
     res.status(201).json({
@@ -78,7 +90,9 @@ export const userSignup = async (req, res) => {
   }
 };
 
-// ✅ User Login
+// -------------------------
+// User Login
+// -------------------------
 export const userLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -98,6 +112,7 @@ export const userLogin = async (req, res) => {
     }
 
     const token = generateToken(user._id, user.role);
+    // Set cookie with proper options
     res.cookie("jwt", token, cookieOptions);
 
     res.json({
@@ -119,7 +134,9 @@ export const userLogin = async (req, res) => {
   }
 };
 
-// ✅ Get User Profile
+// -------------------------
+// Get User Profile
+// -------------------------
 export const userProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -147,7 +164,9 @@ export const userProfile = async (req, res) => {
   }
 };
 
-// ✅ Update User Profile
+// -------------------------
+// Update User Profile
+// -------------------------
 export const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -190,7 +209,9 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
-// ✅ Update User Address
+// -------------------------
+// Update User Address
+// -------------------------
 export const updateUserAddress = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -224,14 +245,18 @@ export const updateUserAddress = async (req, res) => {
   }
 };
 
-// ✅ User Logout (Vercel-friendly)
+// -------------------------
+// User Logout (Vercel-friendly)
+// -------------------------
 export const userLogout = async (req, res) => {
   try {
+    // Clear the cookie with matching options, including domain if set.
     res.clearCookie("jwt", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: "/",
+      ...(prodCookieDomain && { domain: prodCookieDomain }),
     });
 
     res.status(200).json({ message: "Logout successful" });
