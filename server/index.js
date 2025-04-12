@@ -18,7 +18,7 @@ connectDB();
 // ✅ Get allowed origins from .env and convert to array
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",")
-  : ["http://localhost:5173"];
+  : ["http://localhost:5173", "http://localhost:5174"];
 
 // ✅ CORS Configuration
 app.use(

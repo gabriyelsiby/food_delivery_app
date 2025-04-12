@@ -19,7 +19,6 @@ const router = express.Router();
 /**
  * USER ROUTES
  */
-
 // Get all orders of the user (should come first to avoid conflict with /:orderId)
 router.get("/user/all", authUser, getUserOrders); // GET /orders/user/all
 
@@ -33,23 +32,21 @@ router.get("/:orderId", authUser, getOrderDetails); // GET /orders/:orderId
 router.delete("/:orderId", authUser, cancelOrder); // DELETE /orders/:orderId
 
 /**
- * RESTAURANT ROUTES
- */
-
-// Update order status
-router.put("/:orderId/status", authRestaurant, updateOrderStatus); // PUT /orders/:orderId/status
-
-/**
  * ADMIN ROUTES
  */
-
-// Assign a delivery partner to an order
-router.put("/:orderId/assign", authAdmin, assignOrderToDeliveryPartner); // PUT /orders/:orderId/assign
-
 // Get all orders
 router.get("/admin/all", authAdmin, getAllOrders); // GET /orders/admin/all
 
 // Get all delivery partners
 router.get("/admin/delivery-partners", authAdmin, getAllDeliveryPartners); // GET /orders/admin/delivery-partners
+
+// Assign a delivery partner to an order
+router.put("/:orderId/assign", authAdmin, assignOrderToDeliveryPartner); // PUT /orders/:orderId/assign
+
+/**
+ * RESTAURANT ROUTES
+ */
+// Update order status
+router.put("/:orderId/status", authRestaurant, updateOrderStatus); // PUT /orders/:orderId/status
 
 export { router as orderRouter };

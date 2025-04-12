@@ -1,10 +1,9 @@
 import { Coupon } from "../models/couponModel.js";
-import { Order } from "../models/orderModel.js";
 
-// Apply Coupon to an Order
+// ✅ Apply Coupon Based on Total Price (No orderId needed)
 export const applyCoupon = async (req, res) => {
     try {
-        const { code, orderId } = req.body;
+        const { code, totalPrice } = req.body;
 
         const coupon = await Coupon.findOne({ code, isActive: true });
         if (!coupon) {
@@ -18,28 +17,20 @@ export const applyCoupon = async (req, res) => {
             return res.status(400).json({ message: "This coupon has expired" });
         }
 
-        const order = await Order.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ message: "Order not found" });
-        }
-
-        if (order.totalPrice < coupon.minOrderAmount) {
+        if (totalPrice < coupon.minOrderAmount) {
             return res.status(400).json({ 
                 message: `Minimum order amount should be ₹${coupon.minOrderAmount}` 
             });
         }
 
-        let discountAmount = (order.totalPrice * coupon.discount) / 100;
+        let discountAmount = (totalPrice * coupon.discount) / 100;
         discountAmount = Math.min(discountAmount, coupon.maxDiscount);
-
-        order.discount = discountAmount;
-        order.finalPrice = order.totalPrice - discountAmount;
-        await order.save();
+        const finalPrice = totalPrice - discountAmount;
 
         res.json({
             message: "Coupon applied successfully",
             discountAmount,
-            finalPrice: order.finalPrice,
+            finalPrice
         });
     } catch (error) {
         console.error("Apply Coupon Error:", error);
@@ -47,7 +38,7 @@ export const applyCoupon = async (req, res) => {
     }
 };
 
-// Create a New Coupon (Admin Only)
+// ✅ Create a New Coupon (Admin Only)
 export const createCoupon = async (req, res) => {
     try {
         const { code, discount, maxDiscount, minOrderAmount, expiryDate } = req.body;
@@ -83,12 +74,11 @@ export const createCoupon = async (req, res) => {
     }
 };
 
-// Get Available Active Coupons (User and Admin)
+// ✅ Get Available Active Coupons (User and Admin)
 export const getAvailableCoupons = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
 
-        // Find active coupons
         const coupons = await Coupon.find({ isActive: true })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
@@ -106,7 +96,7 @@ export const getAvailableCoupons = async (req, res) => {
     }
 };
 
-// Delete a Coupon (Admin Only)
+// ✅ Delete a Coupon (Admin Only)
 export const deleteCoupon = async (req, res) => {
     try {
         const { couponId } = req.params;
@@ -123,7 +113,7 @@ export const deleteCoupon = async (req, res) => {
     }
 };
 
-// Toggle Coupon Active/Inactive (Admin Only)
+// ✅ Toggle Coupon Active/Inactive (Admin Only)
 export const toggleCouponStatus = async (req, res) => {
     try {
         const { couponId } = req.params;

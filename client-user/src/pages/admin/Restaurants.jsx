@@ -13,7 +13,7 @@ const Restaurants = () => {
 
   const fetchRestaurants = async () => {
     try {
-      const res = await axios.get("/restaurants");
+      const res = await axios.get("/restaurant/");
       setRestaurants(res.data.data);
     } catch (err) {
       console.error(err);

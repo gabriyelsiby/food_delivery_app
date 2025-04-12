@@ -9,13 +9,11 @@ dotenv.config();
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
-// Set the production cookie domain – adjust this to your backend's domain if needed.
 const prodCookieDomain =
   process.env.NODE_ENV === "production"
     ? "food-delivery-app-server-sooty.vercel.app"
     : undefined;
 
-// ✅ Cookie Options for Cross-Site Auth (Vercel-friendly)
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
@@ -68,7 +66,6 @@ export const userSignup = async (req, res) => {
     await newUser.save();
     const token = generateToken(newUser._id, newUser.role);
 
-    // Set cookie with all options including domain in production.
     res.cookie("jwt", token, cookieOptions);
 
     res.status(201).json({
@@ -112,7 +109,6 @@ export const userLogin = async (req, res) => {
     }
 
     const token = generateToken(user._id, user.role);
-    // Set cookie with proper options
     res.cookie("jwt", token, cookieOptions);
 
     res.json({
@@ -250,19 +246,38 @@ export const updateUserAddress = async (req, res) => {
 // -------------------------
 export const userLogout = async (req, res) => {
   try {
-    // Clear the cookie with matching options, including domain if set.
     res.clearCookie("jwt", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: "/",
-      expires: new Date(0), // Explicitly set the cookie to expire in the past
       ...(prodCookieDomain && { domain: prodCookieDomain }),
     });
 
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("🔥 Logout Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// -------------------------
+// Admin: Get All Users
+// -------------------------
+export const getAllUsers = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied: Admins only" });
+    }
+
+    const users = await User.find().select("-password");
+
+    res.json({
+      message: "All users fetched successfully",
+      data: users,
+    });
+  } catch (error) {
+    console.error("🔥 Get All Users Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

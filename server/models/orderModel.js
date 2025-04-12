@@ -12,11 +12,6 @@ const orderSchema = new mongoose.Schema(
       ref: "Restaurant",
       required: true,
     },
-    deliveryPartner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "DeliveryPartner",
-      default: null,
-    },
     items: [
       {
         foodId: {
@@ -32,34 +27,39 @@ const orderSchema = new mongoose.Schema(
         price: {
           type: Number,
           required: true,
-          min: 0,
         },
       },
     ],
     totalPrice: {
       type: Number,
       required: true,
-      min: 0,
     },
     discount: {
       type: Number,
       default: 0,
-      min: 0,
     },
     finalPrice: {
       type: Number,
       required: true,
-      min: 0,
     },
     address: {
       type: String,
       required: true,
-      trim: true,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["Online", "CashOnDelivery"],
+      required: true,
     },
     status: {
       type: String,
-      enum: ["Pending", "Preparing", "Out for Delivery", "Delivered"],
+      enum: ["Pending", "Preparing", "Out for Delivery", "Delivered", "Cancelled"],
       default: "Pending",
+    },
+    deliveryPartner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DeliveryPartner",
+      default: null,
     },
   },
   { timestamps: true }

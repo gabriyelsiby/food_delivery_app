@@ -1,5 +1,5 @@
 import express from "express";
-import { processPayment, verifyPayment } from "../controllers/paymentControllers.js";
+import { processPayment, verifyPayment } from "../controllers/paymentController.js"; // ✅ fixed the import name
 import { authUser } from "../middlewares/authUser.js";
 
 const router = express.Router();

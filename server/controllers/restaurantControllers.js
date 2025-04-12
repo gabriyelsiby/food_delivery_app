@@ -31,7 +31,8 @@ export const registerRestaurant = async (req, res) => {
         await newRestaurant.save();
         const token = generateToken(newRestaurant._id, "restaurant");
 
-        res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "Lax" });
+        // ✅ Set cookie name to 'jwt'
+        res.cookie("jwt", token, { httpOnly: true, secure: false, sameSite: "Lax" });
 
         res.status(201).json({ 
             message: "Restaurant registered successfully", 
@@ -68,7 +69,8 @@ export const restaurantLogin = async (req, res) => {
 
         const token = generateToken(restaurant._id, "restaurant");
 
-        res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "Lax" });
+        // ✅ Set cookie name to 'jwt'
+        res.cookie("jwt", token, { httpOnly: true, secure: false, sameSite: "Lax" });
 
         res.json({
             message: "Login successful",
@@ -151,7 +153,8 @@ export const getRestaurants = async (req, res) => {
 // Logout Restaurant
 export const restaurantLogout = async (req, res) => {
     try {
-        res.clearCookie("token", { httpOnly: true, secure: false, sameSite: "Lax" });
+        // ✅ Clear cookie named 'jwt'
+        res.clearCookie("jwt", { httpOnly: true, secure: false, sameSite: "Lax" });
         res.json({ message: "Logout successful" });
     } catch (error) {
         console.error("Logout Error:", error);

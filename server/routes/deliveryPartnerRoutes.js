@@ -25,6 +25,6 @@ router.put("/update-order-status/:orderId", authDeliveryPartner, updateDeliveryS
 
 router.put("/assign-order/:orderId", authAdmin, assignOrder);
 
-router.get("/logout", authDeliveryPartner, logoutDeliveryPartner);
+router.post("/logout", authDeliveryPartner, logoutDeliveryPartner);
 
 export { router as deliveryRouter }; 

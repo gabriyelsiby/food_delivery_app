@@ -26,4 +26,4 @@ router.delete("/delete/:couponId", authAdmin, deleteCoupon);
 // Toggle coupon status active/inactive (Admin Only)
 router.patch("/toggle-status/:couponId", authAdmin, toggleCouponStatus);
 
-export { router as couponRouter };
+export { router as couponRouter }; // Named export

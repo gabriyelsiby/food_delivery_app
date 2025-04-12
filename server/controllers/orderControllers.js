@@ -3,22 +3,49 @@ import { Order } from "../models/orderModel.js";
 import { FoodItem } from "../models/foodItemModel.js";
 import { DeliveryPartner } from "../models/deliveryPartnerModel.js";
 
-// Place an Order (User Only)
+// ✅ Place an Order (User Only)
 export const placeOrder = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
     const { restaurantId, items, discount = 0, address, paymentMethod } = req.body;
 
-    if (!restaurantId || !items || items.length === 0 || !address || !paymentMethod) {
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: Missing user info" });
+    }
+
+    if (!restaurantId || !Array.isArray(items) || items.length === 0 || !address || !paymentMethod) {
       return res.status(400).json({
         message: "All fields are required (restaurantId, items, address, paymentMethod)",
       });
+    }
+
+    // Validate that all items belong to the same restaurant
+    const firstItemRestaurantId = items[0].restaurantId;
+    for (const item of items) {
+      if (item.restaurantId !== firstItemRestaurantId) {
+        return res.status(400).json({ message: "All items must belong to the same restaurant" });
+      }
+    }
+
+    // Normalize payment method
+    const normalizedPaymentMethod = paymentMethod.toLowerCase() === "cod"
+      ? "CashOnDelivery"
+      : paymentMethod.toLowerCase() === "online"
+      ? "Online"
+      : null;
+
+    if (!normalizedPaymentMethod) {
+      return res.status(400).json({ message: "Invalid payment method" });
     }
 
     let totalPrice = 0;
     const enrichedItems = [];
 
     for (const item of items) {
+      if (!mongoose.Types.ObjectId.isValid(item.foodId)) {
+        return res.status(400).json({ message: `Invalid food ID: ${item.foodId}` });
+      }
+
       const foodItem = await FoodItem.findById(item.foodId);
       if (!foodItem) {
         return res.status(404).json({ message: `Food item with ID ${item.foodId} not found` });
@@ -30,7 +57,7 @@ export const placeOrder = async (req, res) => {
       enrichedItems.push({
         foodId: item.foodId,
         quantity: item.quantity,
-        price: price,
+        price,
       });
     }
 
@@ -44,7 +71,7 @@ export const placeOrder = async (req, res) => {
       discount,
       finalPrice,
       address,
-      paymentMethod,
+      paymentMethod: normalizedPaymentMethod,
       status: "Pending",
     });
 
@@ -52,12 +79,12 @@ export const placeOrder = async (req, res) => {
 
     res.status(201).json({ message: "Order placed successfully", data: newOrder });
   } catch (error) {
-    console.error("Place Order Error:", error);
+    console.error("❌ Place Order Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Get Order Details by ID
+// ✅ Get Order Details by ID
 export const getOrderDetails = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -78,15 +105,19 @@ export const getOrderDetails = async (req, res) => {
 
     res.json({ message: "Order details retrieved", data: order });
   } catch (error) {
-    console.error("Get Order Details Error:", error);
+    console.error("❌ Get Order Details Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Get All Orders for Logged-in User
+// ✅ Get All Orders for Logged-in User
 export const getUserOrders = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: Missing user ID" });
+    }
 
     const orders = await Order.find({ userId })
       .sort({ createdAt: -1 })
@@ -95,17 +126,17 @@ export const getUserOrders = async (req, res) => {
 
     res.json({ message: "User orders retrieved", data: orders });
   } catch (error) {
-    console.error("Get User Orders Error:", error);
+    console.error("❌ Get User Orders Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Update Order Status (Restaurant Only)
+// ✅ Update Order Status (Restaurant Only)
 export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-    const restaurantId = req.user.id;
+    const restaurantId = req.user?.id;
 
     const validStatuses = ["Pending", "Preparing", "Out for Delivery", "Delivered"];
     if (!validStatuses.includes(status)) {
@@ -126,12 +157,12 @@ export const updateOrderStatus = async (req, res) => {
 
     res.json({ message: `Order status updated to '${status}'`, data: order });
   } catch (error) {
-    console.error("Update Order Status Error:", error);
+    console.error("❌ Update Order Status Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Assign Delivery Partner (Admin Only)
+// ✅ Assign Delivery Partner (Admin Only)
 export const assignOrderToDeliveryPartner = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -152,16 +183,16 @@ export const assignOrderToDeliveryPartner = async (req, res) => {
 
     res.json({ message: "Order assigned to delivery partner", data: order });
   } catch (error) {
-    console.error("Assign Delivery Partner Error:", error);
+    console.error("❌ Assign Delivery Partner Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Cancel Order (User Only)
+// ✅ Cancel Order (User Only)
 export const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ message: "Invalid order ID" });
@@ -172,7 +203,7 @@ export const cancelOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found or unauthorized" });
     }
 
-    if (order.status === "Delivered" || order.status === "Cancelled") {
+    if (["Delivered", "Cancelled"].includes(order.status)) {
       return res.status(400).json({ message: `Cannot cancel order. Current status: ${order.status}` });
     }
 
@@ -181,12 +212,12 @@ export const cancelOrder = async (req, res) => {
 
     res.json({ message: "Order cancelled successfully", data: order });
   } catch (error) {
-    console.error("Cancel Order Error:", error);
+    console.error("❌ Cancel Order Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Get All Orders (Admin Only)
+// ✅ Get All Orders (Admin Only)
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -198,21 +229,40 @@ export const getAllOrders = async (req, res) => {
 
     res.json({ message: "All orders fetched successfully", data: orders });
   } catch (error) {
-    console.error("Get All Orders Error:", error);
+    console.error("❌ Get All Orders Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Get All Delivery Partners (Admin Only)
+// ✅ Get All Delivery Partners (Admin Only)
 export const getAllDeliveryPartners = async (req, res) => {
   try {
     const partners = await DeliveryPartner.find({}, "name vehicleType mobile");
 
     res.json({ message: "Delivery partners retrieved", data: partners });
   } catch (error) {
-    console.error("Get All Delivery Partners Error:", error);
+    console.error("❌ Get All Delivery Partners Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Export all controllers
+// ✅ Get Orders for a Specific Restaurant (Restaurant Only)
+export const getRestaurantOrders = async (req, res) => {
+  try {
+    const restaurantId = req.user?.id;
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({ message: "Invalid restaurant ID" });
+    }
+
+    const orders = await Order.find({ restaurantId })
+      .sort({ createdAt: -1 })
+      .populate("userId", "name email")
+      .populate("items.foodId", "name price imageUrl");
+
+    res.json({ message: "Restaurant orders retrieved", data: orders });
+  } catch (error) {
+    console.error("❌ Get Restaurant Orders Error:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};

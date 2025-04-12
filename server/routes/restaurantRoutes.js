@@ -28,6 +28,6 @@ router.put("/update", authRestaurant, updateRestaurantProfile);
 router.get("/", getRestaurants);
 
 // Logout restaurant
-router.get("/logout", restaurantLogout);
+router.post("/logout", restaurantLogout);
 
 export { router as restaurantRouter };

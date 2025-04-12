@@ -1,15 +1,17 @@
 import express from "express";
 import { upload } from "../middlewares/multer.js";
 import { authUser } from "../middlewares/authUser.js";
+import { authAdmin } from "../middlewares/authAdmin.js";
 
 import {
-    userSignup,
-    userLogin,
-    userProfile,
-    updateUserProfile,
-    userLogout,
-    checkUser,
-    updateUserAddress,
+  userSignup,
+  userLogin,
+  userProfile,
+  updateUserProfile,
+  userLogout,
+  checkUser,
+  updateUserAddress,
+  getAllUsers,
 } from "../controllers/userControllers.js";
 
 const router = express.Router();
@@ -33,6 +35,9 @@ router.put("/update-profile", authUser, upload.single("profilePic"), updateUserP
 router.put("/update-address", authUser, updateUserAddress);
 
 // ✅ User Logout
-router.get("/logout", authUser, userLogout);
+router.post("/logout", authUser, userLogout);
+
+// ✅ Admin: Get All Users (requires both user auth and admin role)
+router.get("/all", authAdmin, getAllUsers);
 
 export { router as userRouter };
