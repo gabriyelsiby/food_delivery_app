@@ -6,59 +6,60 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 
-// ✅ Load environment variables
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ✅ Connect to MongoDB
+// Connect to MongoDB
 connectDB();
 
-// ✅ Get allowed origins from .env and convert to array
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",")
-  : ["http://localhost:5173", "http://localhost:5174"];
+// Allowed Origins
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://food-delivery-user-rho.vercel.app",
+  "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app",  // ✅ Added this one
+  "https://foodey-express-client.vercel.app"
+];
 
-// ✅ CORS Configuration
+// CORS Configuration
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(new Error("Not allowed by CORS: " + origin));
       }
     },
-    credentials: true, // Required for sending cookies
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ✅ Middleware
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Serve Static Files (e.g., uploaded images)
+// Serve Static Files
 const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
-// ✅ Test Route
+// Test Route
 app.get("/", (req, res) => {
   res.send("🚀 Server is running!");
 });
 
-// ✅ API Routes
+// API Routes
 app.use("/api", apiRouter);
 
-// ✅ Catch All Unknown Routes
+// Catch-All Route
 app.all("*", (req, res) => {
   res.status(404).json({ message: "❌ Endpoint does not exist" });
 });
 
-// ✅ Start Server
+// Start Server
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });
