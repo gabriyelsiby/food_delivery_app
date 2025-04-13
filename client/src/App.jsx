@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import UserLayout from "./layout/UserLayout";
 import AdminLayout from "./layout/AdminLayout";
 import RestaurantLayout from "./layout/RestaurantLayout";
-import DeliveryLayout from "./layout/DeliveryLayout"; // Import Delivery Layout
+import DeliveryLayout from "./layout/DeliveryLayout";
 
 // User Pages
 import Home from "./pages/Home";
@@ -16,6 +16,10 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Checkout from "./pages/Checkout";
+
+// Payment Pages
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -31,7 +35,7 @@ import AddFood from "./pages/restaurant/AddFood";
 import RestaurantOrders from "./pages/restaurant/Orders";
 import RestaurantProfile from "./pages/restaurant/Profile";
 
-// Delivery Pages (Add the delivery section)
+// Delivery Pages
 import DeliveryLogin from "./pages/delivery/Login";
 import DeliverySignup from "./pages/delivery/Signup";
 import DeliveryDashboard from "./pages/delivery/Dashboard";
@@ -52,8 +56,12 @@ const App = () => {
         <Route path="/restaurant/signup" element={<RestaurantSignup />} />
 
         {/* Delivery Public Routes */}
-        <Route path="/delivery/login" element={<DeliveryLogin />} /> {/* Delivery Login */}
-        <Route path="/delivery/signup" element={<DeliverySignup />} /> {/* Delivery Signup */}
+        <Route path="/delivery/login" element={<DeliveryLogin />} />
+        <Route path="/delivery/signup" element={<DeliverySignup />} />
+
+        {/* Payment Pages */}
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-cancel" element={<PaymentCancel />} />
 
         {/* User Protected Routes */}
         <Route element={<UserLayout />}>
@@ -66,7 +74,7 @@ const App = () => {
 
         {/* Admin Protected Routes */}
         <Route element={<AdminLayout />}>
-          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/admin/Dashboard" element={<Dashboard />} />
           <Route path="/admin/restaurants" element={<Restaurants />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/coupons" element={<Coupons />} />
@@ -82,9 +90,9 @@ const App = () => {
 
         {/* Delivery Protected Routes */}
         <Route path="/delivery" element={<DeliveryLayout />}>
-          <Route path="dashboard" element={<DeliveryDashboard />} /> {/* Delivery Dashboard */}
-          <Route path="assigned-orders" element={<AssignedOrders />} /> {/* Delivery Assigned Orders */}
-          <Route path="profile" element={<DeliveryProfile />} /> {/* Delivery Profile */}
+          <Route path="dashboard" element={<DeliveryDashboard />} />
+          <Route path="assigned-orders" element={<AssignedOrders />} />
+          <Route path="profile" element={<DeliveryProfile />} />
         </Route>
 
         {/* Catch-all for undefined paths */}

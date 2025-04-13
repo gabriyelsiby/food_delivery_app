@@ -150,6 +150,33 @@ export const getRestaurants = async (req, res) => {
     }
 };
 
+// ✅ Enable or Disable Restaurant (Admin Only)
+export const updateRestaurantStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isOpen } = req.body;
+
+        const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+            id,
+            { isOpen },
+            { new: true, runValidators: true }
+        ).select("-password");
+
+        if (!updatedRestaurant) {
+            return res.status(404).json({ message: "Restaurant not found" });
+        }
+
+        res.json({
+            message: `Restaurant has been ${isOpen ? "enabled" : "disabled"} successfully`,
+            data: updatedRestaurant
+        });
+    } catch (error) {
+        console.error("Update Restaurant Status Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
 // Logout Restaurant
 export const restaurantLogout = async (req, res) => {
     try {

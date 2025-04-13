@@ -7,17 +7,16 @@ export const getAllCategories = async (req, res) => {
   try {
     const categories = await FoodItem.distinct("category");
 
-    if (!categories.length) {
-      return res.status(404).json({ message: "No categories found" });
-    }
-
     const categoryList = categories.map((name, index) => ({
       _id: `${index + 1}`,
       name,
       imageUrl: `/images/${name.toLowerCase().replace(/\s+/g, "-")}.jpg`,
     }));
 
-    res.json({ data: categoryList, message: "Categories retrieved successfully" });
+    res.json({
+      data: categoryList,
+      message: categories.length ? "Categories retrieved successfully" : "No categories found",
+    });
   } catch (error) {
     console.error("Get Categories Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
@@ -34,14 +33,12 @@ export const getAllFoodItems = async (req, res) => {
       filter.category = new RegExp(`^${category.trim()}$`, "i");
     }
 
-    // ✅ Populate restaurant name
     const foodList = await FoodItem.find(filter).populate("restaurant", "name");
 
-    if (!foodList.length) {
-      return res.status(404).json({ message: "No food items found for this category" });
-    }
-
-    res.json({ data: foodList, message: "Food items retrieved successfully" });
+    res.json({
+      data: foodList,
+      message: foodList.length ? "Food items retrieved successfully" : "No food items found for this category",
+    });
   } catch (error) {
     console.error("Get Food Items Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
@@ -79,16 +76,16 @@ export const createFoodItem = async (req, res) => {
       return res.status(400).json({ message: "All fields (name, description, price, category) are required" });
     }
 
+    if (isNaN(parseFloat(price))) {
+      return res.status(400).json({ message: "Invalid price value" });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: "Image is required" });
     }
 
-    const uploadDir = path.join(process.cwd(), "uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const imagePath = `uploads/${req.file.filename}`;
+    // ✅ Save Cloudinary URL directly!
+    const imagePath = req.file.path;
 
     const newFoodItem = new FoodItem({
       name,
@@ -126,14 +123,18 @@ export const updateFoodItem = async (req, res) => {
     let updatedFields = {};
     if (name) updatedFields.name = name;
     if (description) updatedFields.description = description;
-    if (price) updatedFields.price = parseFloat(price);
+    if (price) {
+      if (isNaN(parseFloat(price))) {
+        return res.status(400).json({ message: "Invalid price value" });
+      }
+      updatedFields.price = parseFloat(price);
+    }
     if (category) updatedFields.category = category.trim();
 
     if (req.file) {
-      const newImagePath = `uploads/${req.file.filename}`;
-      if (foodItem.imageUrl && fs.existsSync(foodItem.imageUrl)) {
-        fs.unlinkSync(foodItem.imageUrl);
-      }
+      // ✅ Update Cloudinary image URL
+      const newImagePath = req.file.path;
+
       updatedFields.imageUrl = newImagePath;
     }
 
@@ -158,10 +159,6 @@ export const deleteFoodItem = async (req, res) => {
     const foodItem = await FoodItem.findOne({ _id: foodId, restaurant: restaurantId });
     if (!foodItem) {
       return res.status(404).json({ message: "Food item not found or unauthorized to delete" });
-    }
-
-    if (foodItem.imageUrl && fs.existsSync(foodItem.imageUrl)) {
-      fs.unlinkSync(foodItem.imageUrl);
     }
 
     await FoodItem.findByIdAndDelete(foodId);

@@ -11,6 +11,10 @@ export const addReview = async (req, res) => {
             return res.status(400).json({ message: "Food ID and rating are required" });
         }
 
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({ message: "Rating must be between 1 and 5" });
+        }
+
         // ✅ Check if the user has ordered this food item
         const hasOrdered = await Order.findOne({
             userId,
@@ -66,7 +70,7 @@ export const getFoodReviews = async (req, res) => {
         const { foodId } = req.params;
 
         const reviews = await Review.find({ foodId })
-            .populate("userId", "name")
+            .populate("userId", "name email profilePicture") // Example: populate more fields if needed
             .sort({ createdAt: -1 });
 
         if (reviews.length === 0) {

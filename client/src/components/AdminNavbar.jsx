@@ -25,6 +25,9 @@ const AdminNavbar = () => {
       <h1 className="text-2xl font-bold text-rose-600">Admin Panel</h1>
 
       <div className="flex space-x-4 items-center">
+        <Link to="/admin/dashboard" className={navLinkClass("/admin/dashboard")}>
+          Dashboard
+        </Link>
         <Link to="/admin/restaurants" className={navLinkClass("/admin/restaurants")}>
           Manage Restaurants
         </Link>

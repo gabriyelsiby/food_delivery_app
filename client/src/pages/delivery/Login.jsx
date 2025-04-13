@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Added Link for navigation
 import axios from "../../config/axios";
 import { toast } from "react-toastify";
 
@@ -48,6 +48,12 @@ const Login = () => {
                 </div>
                 <button type="submit" className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Login</button>
             </form>
+            <p className="mt-4 text-center text-sm text-gray-600">
+                Don't have an account?{" "}
+                <Link to="/delivery/signup" className="text-blue-500 hover:underline">
+                    Sign up
+                </Link>
+            </p>
         </div>
     );
 };

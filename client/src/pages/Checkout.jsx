@@ -3,6 +3,10 @@ import useCartStore from "../store/cartStore";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { loadStripe } from '@stripe/stripe-js';
+
+// Initialize Stripe with your publishable key
+const stripePromise = loadStripe("pk_test_51R9iKpPuI568s4MQZdpJZ4Pf54dqgWcKdFhVWVP6cnEOPQRUEd4E4JFYU2seU0GVmbkX889KnfiUIchMJctqJvUy00UHmi8uOa");
 
 const Checkout = () => {
   const { items, totalPrice, clearCart, loadCartFromStorage } = useCartStore();
@@ -69,8 +73,12 @@ const Checkout = () => {
   };
 
   const handleCheckout = async () => {
-    if (!address || !paymentMethod) {
-      return toast.error("Please provide address and payment method");
+    if (!address.trim()) {
+      return toast.error("Please provide a valid delivery address");
+    }
+
+    if (!paymentMethod) {
+      return toast.error("Please select a payment method");
     }
 
     if (items.length === 0) {
@@ -80,15 +88,10 @@ const Checkout = () => {
     // Extract restaurantId from the first item and check if it exists
     const restaurantId = items[0]?.restaurantId;
 
-    // Log cart items and restaurantIds for debugging
-    console.log("Cart Items:", items);
-    console.log("Restaurant IDs in Cart:", items.map(item => item.restaurantId));
-
     // Check if all items have the same restaurantId
     const allSameRestaurant = items.every(item => item.restaurantId === restaurantId);
 
     if (!restaurantId || !allSameRestaurant) {
-      console.error("Validation Failed: Items from multiple restaurants detected.");
       return toast.error("All items in the cart must belong to the same restaurant.");
     }
 
@@ -102,15 +105,14 @@ const Checkout = () => {
           quantity: item.quantity,
         })),
         address,
-        paymentMethod,
+        paymentMethod, // Ensure this is included in the orderData
         discount,
       };
 
-      // Log the orderData for debugging
-      console.log("Order Data:", orderData);
+      console.log("Order Data:", orderData); // Debugging: Log the order data being sent
 
       // Make the API request to place the order
-      const res = await axios.post(
+      const orderResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/orders`,
         orderData,
         {
@@ -118,18 +120,36 @@ const Checkout = () => {
         }
       );
 
-      toast.success("Order placed successfully!");
-      clearCart();
-      navigate("/orders");
+      if (paymentMethod === "online") {
+        // Handle Stripe checkout for online payments
+        const sessionId = orderResponse.data?.sessionId; // Safely access sessionId
+
+        if (!sessionId) {
+          console.error("Backend response:", orderResponse.data); // Debugging: Log the backend response
+          throw new Error("Session ID is missing from the backend response.");
+        }
+
+        const stripe = await stripePromise;
+
+        // Redirect to the Stripe checkout page
+        const { error } = await stripe.redirectToCheckout({ sessionId });
+
+        if (error) {
+          toast.error(error.message);
+        }
+      } else {
+        // If COD, finalize order placement and clear cart
+        toast.success("Order placed successfully with Cash on Delivery!");
+        clearCart();
+        navigate("/orders");
+      }
     } catch (error) {
-      console.error("Checkout error:", error);
+      console.error("Checkout error:", error); // Debugging: Log the error details
       if (error.response?.status === 401) {
         toast.error("You are not authorized. Please log in and try again.");
         navigate("/login");
       } else {
-        toast.error(
-          error.response?.data?.message || "Checkout failed. Please try again."
-        );
+        toast.error(error.response?.data?.message || "Checkout failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -161,7 +181,7 @@ const Checkout = () => {
           onChange={(e) => setPaymentMethod(e.target.value)}
         >
           <option value="cod">Cash on Delivery</option>
-          <option value="online">Online Payment (Coming soon)</option>
+          <option value="online">Online Payment (via Stripe)</option>
         </select>
       </div>
 

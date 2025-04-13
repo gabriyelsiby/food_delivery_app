@@ -8,6 +8,7 @@ import {
   cancelOrder,
   getAllOrders,
   getAllDeliveryPartners,
+  getRestaurantOrders,
 } from "../controllers/orderControllers.js";
 
 import { authUser } from "../middlewares/authUser.js";
@@ -48,5 +49,8 @@ router.put("/:orderId/assign", authAdmin, assignOrderToDeliveryPartner); // PUT 
  */
 // Update order status
 router.put("/:orderId/status", authRestaurant, updateOrderStatus); // PUT /orders/:orderId/status
+
+// Get all orders for a specific restaurant
+router.get("/restaurant/orders", authRestaurant, getRestaurantOrders); // GET /orders/restaurant/orders
 
 export { router as orderRouter };

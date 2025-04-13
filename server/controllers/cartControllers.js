@@ -7,13 +7,21 @@ const calculateCartTotal = async (cart) => {
     for (const item of cart.items) {
         const food = await FoodItem.findById(item.foodId);
         if (food) {
-            item.price = food.price;
-            total += item.quantity * food.price;
+            if (food.price !== item.price) {
+                // Optionally log this issue or notify if prices don't match
+                console.warn(`Price mismatch for food ID ${item.foodId}`);
+                item.price = food.price; // Optionally update or notify
+            }
+            total += item.quantity * item.price;
+        } else {
+            // Handle the case where the food item is not found in the database
+            console.log(`Food item with ID ${item.foodId} not found`);
         }
     }
     cart.totalPrice = total;
 };
 
+// Add to Cart
 export const addToCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -47,6 +55,7 @@ export const addToCart = async (req, res) => {
     }
 };
 
+// Get Cart
 export const getCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -67,6 +76,12 @@ export const getCart = async (req, res) => {
             cart.items.map(async (item) => {
                 const food = await FoodItem.findById(item.foodId).populate("restaurant", "name logoUrl");
 
+                if (!food) {
+                    // If food item is not found, handle accordingly
+                    console.log(`Food item with ID ${item.foodId} not found`);
+                    return null; // You can return a fallback or just ignore
+                }
+
                 return {
                     foodId: food._id,
                     name: food.name,
@@ -84,10 +99,13 @@ export const getCart = async (req, res) => {
             })
         );
 
+        // Filter out null values if any item was missing
+        const validItems = formattedItems.filter(item => item !== null);
+
         res.status(200).json({
             message: "Cart retrieved successfully",
             data: {
-                items: formattedItems,
+                items: validItems,
                 totalPrice: cart.totalPrice,
             },
         });
@@ -97,6 +115,7 @@ export const getCart = async (req, res) => {
     }
 };
 
+// Update Cart
 export const updateCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -115,20 +134,21 @@ export const updateCart = async (req, res) => {
 
         if (quantity === 0) {
             cart.items.splice(itemIndex, 1);
+            res.status(200).json({ message: "Food item removed from cart", data: cart });
         } else {
             cart.items[itemIndex].quantity = quantity;
+            res.status(200).json({ message: "Cart updated successfully", data: cart });
         }
 
         await calculateCartTotal(cart);
         await cart.save();
-
-        res.status(200).json({ message: "Cart updated successfully", data: cart });
     } catch (error) {
         console.error("Update Cart Error:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 
+// Remove from Cart
 export const removeFromCart = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -152,6 +172,7 @@ export const removeFromCart = async (req, res) => {
     }
 };
 
+// Clear Cart
 export const clearCart = async (req, res) => {
     try {
         const userId = req.user?.id;

@@ -6,6 +6,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch orders
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -26,6 +27,25 @@ const Orders = () => {
 
     fetchOrders();
   }, []);
+
+  // Cancel Order
+  const cancelOrder = async (orderId) => {
+    try {
+      const res = await axios.delete(
+        `http://localhost:5000/api/orders/${orderId}`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      setOrders(orders.map(order => 
+        order._id === orderId ? { ...order, status: "Cancelled" } : order
+      ));
+    } catch (err) {
+      console.error("Error canceling order:", err);
+      setError("Failed to cancel the order.");
+    }
+  };
 
   if (loading) {
     return (
@@ -93,6 +113,16 @@ const Orders = () => {
             <div className="mt-3 text-right font-semibold">
               ₹ {order.finalPrice}
             </div>
+
+            {/* Cancel Button */}
+            {order.status !== "Delivered" && order.status !== "Cancelled" && (
+              <button
+                onClick={() => cancelOrder(order._id)}
+                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Cancel Order
+              </button>
+            )}
           </div>
         ))}
       </div>

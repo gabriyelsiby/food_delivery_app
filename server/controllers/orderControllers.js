@@ -194,6 +194,10 @@ export const cancelOrder = async (req, res) => {
     const { orderId } = req.params;
     const userId = req.user?.id;
 
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized: No token provided or invalid token" });
+    }
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ message: "Invalid order ID" });
     }
@@ -208,6 +212,7 @@ export const cancelOrder = async (req, res) => {
     }
 
     order.status = "Cancelled";
+    order.cancelledAt = new Date(); // Add a timestamp for cancellation
     await order.save();
 
     res.json({ message: "Order cancelled successfully", data: order });
@@ -257,10 +262,14 @@ export const getRestaurantOrders = async (req, res) => {
 
     const orders = await Order.find({ restaurantId })
       .sort({ createdAt: -1 })
-      .populate("userId", "name email")
+      .populate("userId", "name email")  // <-- this is the customer's name
       .populate("items.foodId", "name price imageUrl");
 
-    res.json({ message: "Restaurant orders retrieved", data: orders });
+    res.status(200).json({
+      success: true,
+      data: orders
+    });
+
   } catch (error) {
     console.error("❌ Get Restaurant Orders Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });

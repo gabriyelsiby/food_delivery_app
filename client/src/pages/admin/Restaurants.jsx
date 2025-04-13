@@ -1,150 +1,79 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { Card, CardContent } from "../../components/ui/Card";
-import { Button } from "../../components/ui/Button";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "../../components/ui/Table";
-import { Input } from "../../components/ui/Input";  // Import the Input component
+import axios from "../../config/axios";
+import { toast } from "react-toastify";
 
-const RestaurantsPage = () => {
-  const [restaurants, setRestaurants] = useState([]);  // State to store the restaurant data
-  const [name, setName] = useState(""); // For capturing input from the user for restaurant name
-  const [email, setEmail] = useState(""); // For capturing input from the user for email
-  const [location, setLocation] = useState(""); // For capturing input from the user for location
-  const [cuisine, setCuisine] = useState(""); // For capturing input from the user for cuisine
-  const [phone, setPhone] = useState(""); // For capturing input from the user for phone number
-  const [isOpen, setIsOpen] = useState(true); // For capturing input for whether the restaurant is open or not
+const Restaurants = () => {
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-  // Fetch all restaurants from the backend
-  useEffect(() => {
-    const fetchRestaurants = async () => {
-      try {
-        const { data } = await axios.get(`${API_BASE_URL}/`);
-        setRestaurants(data.data || []);  // Safeguard if no data is returned
-      } catch (error) {
-        console.error("Failed to fetch restaurants:", error);
-        setRestaurants([]);  // Reset restaurants state on error
-      }
-    };
-
-    fetchRestaurants();
-  }, []);
-
-  // Handle new restaurant registration
-  const handleRegisterRestaurant = async () => {
+  const fetchRestaurants = async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/restaurants/register`, {
-        name,
-        email,
-        location,
-        cuisine,
-        phone,
-        isOpen,
-      });
-      alert("Restaurant registered successfully!");
-      setName("");  // Reset inputs after successful registration
-      setEmail("");
-      setLocation("");
-      setCuisine("");
-      setPhone("");
-      setIsOpen(true);
-      // Re-fetch the restaurant list
-      const { data } = await axios.get(`${API_BASE_URL}/restaurants`);
-      setRestaurants(data.data);
+      const res = await axios.get("/restaurant/");
+      setRestaurants(res.data.data);
+      setLoading(false);
     } catch (error) {
-      console.error("Failed to register restaurant:", error);
-      alert("Failed to register restaurant");
+      console.error("Error fetching restaurants:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to fetch restaurants"
+      );
+      setLoading(false);
     }
   };
 
+  const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      await axios.put(`/admin/restaurants/${id}/status`, { isOpen: !currentStatus });
+      toast.success("Restaurant status updated");
+      fetchRestaurants();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to update status"
+      );
+    }
+  };
+
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
+
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Manage Restaurants</h1>
-
-      {/* Register new restaurant */}
-      <Card>
-        <CardContent>
-          <h2 className="text-xl font-semibold">Register New Restaurant</h2>
-          <div className="space-y-4">
-            <Input
-              label="Restaurant Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Input
-              label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Input
-              label="Location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
-            <Input
-              label="Cuisine"
-              value={cuisine}
-              onChange={(e) => setCuisine(e.target.value)}
-            />
-            <Input
-              label="Phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            <div>
-              <label className="block text-sm">Is Open</label>
-              <input
-                type="checkbox"
-                checked={isOpen}
-                onChange={(e) => setIsOpen(e.target.checked)}
-                className="mt-1"
-              />
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">All Registered Restaurants</h1>
+      {loading ? (
+        <p>Loading...</p>
+      ) : restaurants.length === 0 ? (
+        <p>No restaurants found.</p>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {restaurants.map((restaurant) => (
+            <div key={restaurant._id} className="border rounded-2xl p-4 shadow">
+              <h2 className="text-xl font-semibold mb-2">{restaurant.name}</h2>
+              <p className="text-gray-600">{restaurant.email}</p>
+              <p className="text-gray-600">Cuisine: {restaurant.cuisine}</p>
+              <p className="text-gray-600">Phone: {restaurant.phone}</p>
+              <p className="text-gray-600">Location: {restaurant.location}</p>
+              <p
+                className={`mt-2 font-medium ${
+                  restaurant.isOpen ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {restaurant.isOpen ? "Open" : "Closed"}
+              </p>
+              <button
+                onClick={() => handleToggleStatus(restaurant._id, restaurant.isOpen)}
+                className={`mt-3 px-4 py-2 rounded-xl text-white ${
+                  restaurant.isOpen ? "bg-red-600" : "bg-green-600"
+                }`}
+              >
+                {restaurant.isOpen ? "Disable" : "Enable"}
+              </button>
             </div>
-            <Button onClick={handleRegisterRestaurant}>Register</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Display list of restaurants */}
-      <Card>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Restaurant Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Cuisine</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Is Open</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {restaurants.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan="6" className="text-center">
-                    No restaurants available
-                  </TableCell>
-                </TableRow>
-              ) : (
-                restaurants.map((restaurant) => (
-                  <TableRow key={restaurant._id}>
-                    <TableCell>{restaurant.name}</TableCell>
-                    <TableCell>{restaurant.email}</TableCell>
-                    <TableCell>{restaurant.location}</TableCell>
-                    <TableCell>{restaurant.cuisine}</TableCell>
-                    <TableCell>{restaurant.phone}</TableCell>
-                    <TableCell>{restaurant.isOpen ? "Yes" : "No"}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-export default RestaurantsPage;
+export default Restaurants;

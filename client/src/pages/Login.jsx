@@ -23,10 +23,15 @@ const Login = () => {
 
       // Redirect based on user role
       if (data?.role === "admin") {
-        navigate("/admin");  // Redirect Admin to Dashboard
+        navigate("/admin/Dashboard");  // <-- match the route in App.jsx
+      } else if (data?.role === "restaurant") {
+        navigate("/restaurant/dashboard");
+      } else if (data?.role === "delivery") {
+        navigate("/delivery/dashboard");
       } else {
-        navigate("/");       // Redirect User to Home
+        navigate("/");  // Normal user home
       }
+
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }

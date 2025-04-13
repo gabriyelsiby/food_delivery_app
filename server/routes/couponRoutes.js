@@ -11,19 +11,19 @@ import { authAdmin } from "../middlewares/authAdmin.js";
 
 const router = express.Router();
 
-// Apply a coupon (User)
+// ✅ Apply a coupon (User Only)
 router.post("/apply", authUser, applyCoupon);
 
-// Create a new coupon (Admin)
+// ✅ Create a new coupon (Admin Only)
 router.post("/create", authAdmin, createCoupon);
 
-// Get Available Coupons (User)
-router.get("/available", authUser, getAvailableCoupons);  // Updated endpoint
+// ✅ Get available active coupons (User)
+router.get("/available", authUser, getAvailableCoupons);
 
-// Delete a coupon (Admin)
+// ✅ Delete a coupon by ID (Admin Only)
 router.delete("/delete/:couponId", authAdmin, deleteCoupon);
 
-// Toggle coupon status active/inactive (Admin Only)
+// ✅ Toggle coupon status active/inactive (Admin Only)
 router.patch("/toggle-status/:couponId", authAdmin, toggleCouponStatus);
 
-export { router as couponRouter }; // Named export
+export { router as couponRouter };

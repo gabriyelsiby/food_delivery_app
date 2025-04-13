@@ -5,10 +5,12 @@ import {
     restaurantProfile,
     updateRestaurantProfile,
     restaurantLogout,
-    getRestaurants
+    getRestaurants,
+    updateRestaurantStatus // Add the new controller function here
 } from "../controllers/restaurantControllers.js";
 
 import { authRestaurant } from "../middlewares/authRestaurant.js";
+import { authAdmin } from "../middlewares/authAdmin.js"; // Assuming you have an admin authentication middleware
 
 const router = express.Router();
 
@@ -24,8 +26,11 @@ router.get("/profile", authRestaurant, restaurantProfile);
 // Edit restaurant profile
 router.put("/update", authRestaurant, updateRestaurantProfile);
 
-// ✅ FIXED: Clean get all restaurants route
+// ✅ Get all restaurants route (with optional filter by cuisine)
 router.get("/", getRestaurants);
+
+// Admin route to enable/disable a restaurant
+router.put("/admin/:id/status", authAdmin, updateRestaurantStatus); // The new endpoint for enabling/disabling
 
 // Logout restaurant
 router.post("/logout", restaurantLogout);
