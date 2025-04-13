@@ -18,7 +18,7 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://food-delivery-user-rho.vercel.app",
-  "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app",  // ✅ Added this one
+  "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app",
   "https://foodey-express-client.vercel.app"
 ];
 
@@ -54,9 +54,18 @@ app.get("/", (req, res) => {
 // API Routes
 app.use("/api", apiRouter);
 
-// Catch-All Route
+// Catch-All Route for undefined paths
 app.all("*", (req, res) => {
   res.status(404).json({ message: "❌ Endpoint does not exist" });
+});
+
+// Global Error Handler (IMPORTANT for catching CORS & other internal errors)
+app.use((err, req, res, next) => {
+  console.error("🔥 Server Error:", err.stack);
+  res.status(500).json({
+    message: "Something went wrong on the server.",
+    error: err.message,
+  });
 });
 
 // Start Server
