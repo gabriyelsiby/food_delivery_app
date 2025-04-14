@@ -1,25 +1,21 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
+import axios from "../config/axios";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch orders
+  // MongoDB ObjectId Validator
+  const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(id);
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/orders/user/all`,
-          {
-            withCredentials: true,
-          }
-        );
-        setOrders(res.data.data || []);
+        const res = await axios.get("/orders/user/all");
+        setOrders(res.data.data);
       } catch (err) {
-        console.error("Error fetching orders:", err);
-        setError("Failed to load orders.");
+        setError(err.response?.data?.message || "Failed to load orders.");
       } finally {
         setLoading(false);
       }
@@ -28,104 +24,99 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
-  // Cancel Order
-  const cancelOrder = async (orderId) => {
+  const handleCancelOrder = async (orderId) => {
+    if (!isValidObjectId(orderId)) {
+      alert("Invalid order ID!");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+
     try {
-      const res = await axios.delete(
-        `http://localhost:5000/api/orders/${orderId}`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
-      setOrders(orders.map(order => 
-        order._id === orderId ? { ...order, status: "Cancelled" } : order
-      ));
+      await axios.delete(`/orders/${orderId}`);
+      setOrders((prev) => prev.filter((order) => order._id !== orderId));
+      alert("Order canceled successfully.");
     } catch (err) {
-      console.error("Error canceling order:", err);
-      setError("Failed to cancel the order.");
+      console.error("Cancel Order Error:", err);
+      alert(err.response?.data?.message || "Failed to cancel order.");
     }
   };
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto py-10">
-        <h2 className="text-2xl font-bold mb-4">📦 Your Orders</h2>
-        <p className="text-gray-500">Loading your orders...</p>
+      <div className="flex justify-center items-center h-[80vh]">
+        <div className="w-10 h-10 border-4 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto py-10">
-        <h2 className="text-2xl font-bold mb-4">📦 Your Orders</h2>
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
-  }
-
-  if (orders.length === 0) {
-    return (
-      <div className="max-w-4xl mx-auto py-10">
-        <h2 className="text-2xl font-bold mb-4">📦 Your Orders</h2>
-        <p className="text-gray-600">You haven’t placed any orders yet.</p>
-      </div>
+      <div className="text-center mt-10 text-red-500 text-lg">{error}</div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-10">
-      <h2 className="text-2xl font-bold mb-6">📦 Your Orders</h2>
-      <div className="space-y-6">
-        {orders.map((order) => (
-          <div
-            key={order._id}
-            className="border rounded-2xl p-4 shadow-sm bg-white"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <div className="text-lg font-semibold">
-                Order #{order._id.slice(-6)}
-              </div>
-              <span
-                className={`text-sm font-medium ${
-                  order.status === "Delivered"
-                    ? "text-green-600"
-                    : order.status === "Cancelled"
-                    ? "text-red-500"
-                    : "text-yellow-600"
-                }`}
-              >
-                {order.status}
+    <div className="p-4 grid gap-4">
+      <h1 className="text-2xl font-bold mb-4">My Orders</h1>
+      {orders.length === 0 ? (
+        <p className="text-gray-500">No orders found.</p>
+      ) : (
+        orders.map((order) => (
+          <div key={order._id} className="shadow-md rounded-2xl border p-4 space-y-2">
+            <div className="flex justify-between items-center">
+              <h2 className="font-semibold text-lg">Order ID: {order._id}</h2>
+              <span className="text-sm text-gray-500">
+                {new Date(order.createdAt).toLocaleString()}
               </span>
             </div>
-            <p className="text-sm text-gray-500 mb-2">
-              {new Date(order.createdAt).toLocaleString()}
+
+            <p className="text-sm text-gray-600">
+              Restaurant: {order.restaurantId?.name} ({order.restaurantId?.address})
             </p>
-            <div className="space-y-1 text-sm">
+
+            <div className="space-y-1">
               {order.items.map((item) => (
                 <div key={item._id} className="flex justify-between">
-                  <span>{item.foodId?.name || "Food Item"}</span>
-                  <span>x{item.quantity}</span>
+                  <span>{item.foodId?.name} x {item.quantity}</span>
+                  <span>₹{item.foodId?.price * item.quantity}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-3 text-right font-semibold">
-              ₹ {order.finalPrice}
-            </div>
 
-            {/* Cancel Button */}
-            {order.status !== "Delivered" && order.status !== "Cancelled" && (
+            <p className="font-medium">Total: ₹{order.totalPrice}</p>
+
+            {/* Order Status */}
+            <p
+              className={`text-sm font-semibold ${
+                order.status === "Pending"
+                  ? "text-yellow-500"
+                  : order.status === "Preparing"
+                  ? "text-orange-500"
+                  : order.status === "Out for Delivery"
+                  ? "text-blue-600"
+                  : order.status === "Delivered"
+                  ? "text-green-600"
+                  : order.status === "Cancelled"
+                  ? "text-red-500"
+                  : "text-gray-500"
+              }`}
+            >
+              Status: {order.status}
+            </p>
+
+            {/* Display Cancel Button only for Pending or Preparing */}
+            {["Pending", "Preparing"].includes(order.status) && (
               <button
-                onClick={() => cancelOrder(order._id)}
-                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                onClick={() => handleCancelOrder(order._id)}
               >
                 Cancel Order
               </button>
             )}
           </div>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 };

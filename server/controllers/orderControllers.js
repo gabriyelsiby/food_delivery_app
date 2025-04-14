@@ -213,7 +213,9 @@ export const cancelOrder = async (req, res) => {
 
     order.status = "Cancelled";
     order.cancelledAt = new Date(); // Add a timestamp for cancellation
-    await order.save();
+
+    // Use `save` with `validateModifiedOnly` to avoid validating unmodified fields like `paymentMethod`
+    await order.save({ validateModifiedOnly: true });
 
     res.json({ message: "Order cancelled successfully", data: order });
   } catch (error) {
