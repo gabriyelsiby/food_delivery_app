@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // Added Link for navigation
+import { useNavigate, Link } from "react-router-dom";
 import axios from "../../config/axios";
 import { toast } from "react-toastify";
 
