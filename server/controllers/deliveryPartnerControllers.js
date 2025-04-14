@@ -113,29 +113,29 @@ export const updateDeliveryStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { status } = req.body;
-        const deliveryPartnerId = req.user.id;
 
         if (!mongoose.Types.ObjectId.isValid(orderId)) {
-            return res.status(400).json({ message: "Invalid Order ID" });
+            return res.status(400).json({ message: "Invalid order ID" });
         }
 
         const validStatuses = ["Out for Delivery", "Delivered"];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: "Invalid delivery status" });
+            return res.status(400).json({ message: "Invalid status value" });
         }
 
-        const order = await Order.findOne({ _id: orderId, deliveryPartner: deliveryPartnerId });
-
+        const order = await Order.findById(orderId);
         if (!order) {
-            return res.status(404).json({ message: "Order not found or not assigned to you" });
+            return res.status(404).json({ message: "Order not found" });
         }
 
         order.status = status;
-        await order.save();
 
-        res.json({ data: order, message: `Order marked as '${status}'` });
+        // Use `save` with `validateModifiedOnly` to avoid validating unmodified fields like `paymentMethod`
+        await order.save({ validateModifiedOnly: true });
+
+        res.json({ message: `Order status updated to '${status}'`, data: order });
     } catch (error) {
-        console.error("Update Delivery Status Error:", error);
+        console.error("❌ Update Delivery Status Error:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
