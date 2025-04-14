@@ -19,7 +19,7 @@ import Checkout from "./pages/Checkout";
 
 // Payment Pages
 import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancel from "./pages/PaymentCancel"; // Ensure correct case and path
+import PaymentCancel from "./pages/paymentCancel"; // ✅ Fixed: lowercase 'p'
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -61,7 +61,7 @@ const App = () => {
 
         {/* Payment Pages */}
         <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-cancel" element={<PaymentCancel />} /> {/* Correct path for PaymentCancel */}
+        <Route path="/payment-cancel" element={<PaymentCancel />} /> {/* ✅ Fixed path */}
 
         {/* User Protected Routes */}
         <Route element={<UserLayout />}>
@@ -100,7 +100,6 @@ const App = () => {
           path="*"
           element={<div className="text-center mt-10 text-gray-600">Page not found</div>}
         />
-
       </Routes>
 
       <ToastContainer position="top-right" autoClose={3000} />
