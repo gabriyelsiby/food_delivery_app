@@ -19,7 +19,7 @@ import Checkout from "./pages/Checkout";
 
 // Payment Pages
 import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancel from "./pages/paymentCancel"; // ✅ Fixed: lowercase 'p'
+import PaymentCancel from "./pages/paymentCancel"; // ✅ Ensure lowercase 'p'
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
