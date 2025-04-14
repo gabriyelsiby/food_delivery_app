@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "../config/axios";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   // MongoDB ObjectId Validator
   const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(id);
@@ -86,7 +88,6 @@ const Orders = () => {
 
             <p className="font-medium">Total: ₹{order.totalPrice}</p>
 
-            {/* Order Status */}
             <p
               className={`text-sm font-semibold ${
                 order.status === "Pending"
@@ -113,6 +114,21 @@ const Orders = () => {
               >
                 Cancel Order
               </button>
+            )}
+
+            {/* Display Add Review Buttons for Delivered Orders */}
+            {order.status === "Delivered" && (
+              <div className="mt-2 space-y-1">
+                {order.items.map((item) => (
+                  <button
+                    key={item._id}
+                    onClick={() => navigate(`/reviews/${item.foodId?._id}`)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-full text-left"
+                  >
+                    Review {item.foodId?.name}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         ))

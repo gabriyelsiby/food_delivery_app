@@ -17,9 +17,15 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Checkout from "./pages/Checkout";
 
+// Review Page
+import ReviewPage from "./pages/ReviewPage";
+
+// Food Details Page
+import FoodDetails from "./pages/FoodDetails";
+
 // Payment Pages
 import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancel from "./pages/paymentCancel"; // ✅ Ensure lowercase 'p'
+import PaymentCancel from "./pages/paymentCancel";
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -61,7 +67,7 @@ const App = () => {
 
         {/* Payment Pages */}
         <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-cancel" element={<PaymentCancel />} /> {/* ✅ Fixed path */}
+        <Route path="/payment-cancel" element={<PaymentCancel />} />
 
         {/* User Protected Routes */}
         <Route element={<UserLayout />}>
@@ -70,6 +76,8 @@ const App = () => {
           <Route path="/orders" element={<Orders />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/reviews/:foodId" element={<ReviewPage />} />
+          <Route path="/food/:foodId" element={<FoodDetails />} />
         </Route>
 
         {/* Admin Protected Routes */}
