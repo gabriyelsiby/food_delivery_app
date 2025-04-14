@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // Automatically reads from .env
+  baseURL: import.meta.env.VITE_API_URL || "https://food-delivery-app-server-sooty.vercel.app/api", // Use VITE_API_URL for production
   withCredentials: true,
 });
 
