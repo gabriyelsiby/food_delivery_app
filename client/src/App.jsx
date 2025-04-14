@@ -19,7 +19,7 @@ import Checkout from "./pages/Checkout";
 
 // Payment Pages
 import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancel from "./pages/paymentCancel";  // Fixed import path (lowercase "p")
+import PaymentCancel from "./pages/PaymentCancel"; // Ensure correct case and path
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -61,7 +61,7 @@ const App = () => {
 
         {/* Payment Pages */}
         <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-cancel" element={<PaymentCancel />} />  {/* Correct path for PaymentCancel */}
+        <Route path="/payment-cancel" element={<PaymentCancel />} /> {/* Correct path for PaymentCancel */}
 
         {/* User Protected Routes */}
         <Route element={<UserLayout />}>
