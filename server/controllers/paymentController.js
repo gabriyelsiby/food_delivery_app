@@ -12,7 +12,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const clientUrl = process.env.CLIENT_URL?.trim() || "http://localhost:5173";
 console.log("Resolved CLIENT_URL:", clientUrl);
 
-// Process Payment Controller
+// Safe Stripe Currency Fallback
+const stripeCurrency = process.env.STRIPE_CURRENCY?.toLowerCase() === 'inr' ? 'inr' : 'usd';
+console.log("💰 Stripe Currency Set To:", stripeCurrency);
+
+// ========================
+// 💳 Process Payment
+// ========================
 export const processPayment = async (req, res) => {
   try {
     const { orderId, paymentMethod, amount, items } = req.body;
@@ -32,7 +38,7 @@ export const processPayment = async (req, res) => {
         orderId,
         amount,
         paymentMethod,
-        paymentStatus: "completed",  // COD = auto completed
+        paymentStatus: "completed", // COD = auto completed
       });
 
       await Order.findByIdAndUpdate(orderId, { status: "placed" });
@@ -53,9 +59,9 @@ export const processPayment = async (req, res) => {
           } else {
             acc.push({
               price_data: {
-                currency: process.env.STRIPE_CURRENCY || 'usd',
+                currency: stripeCurrency,
                 product_data: { name: item.name },
-                unit_amount: Math.round(Number(item.price) * 100),  // dollars to cents
+                unit_amount: Math.round(Number(item.price) * 100), // ₹ → paise (INR) or $ → cents (USD)
               },
               quantity: item.quantity,
             });
@@ -85,7 +91,7 @@ export const processPayment = async (req, res) => {
         });
 
       } catch (stripeError) {
-        console.error("Stripe Session Creation Error:", stripeError);
+        console.error("❌ Stripe Session Creation Error:", stripeError);
         return res.status(500).json({
           message: "Failed to create Stripe session",
           error: stripeError.message,
@@ -96,12 +102,14 @@ export const processPayment = async (req, res) => {
     res.status(400).json({ message: "Unsupported payment method" });
 
   } catch (error) {
-    console.error("Payment error:", error);
+    console.error("💥 Payment error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-// Verify Payment Controller
+// ========================
+// ✅ Verify Payment
+// ========================
 export const verifyPayment = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -139,7 +147,7 @@ export const verifyPayment = async (req, res) => {
     res.status(400).json({ message: "Unsupported payment method for verification" });
 
   } catch (error) {
-    console.error("Verify Payment Error:", error);
+    console.error("💥 Verify Payment Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
