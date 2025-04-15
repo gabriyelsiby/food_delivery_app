@@ -9,7 +9,7 @@ dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Resolve Client URL
-const clientUrl = process.env.CLIENT_URL?.trim() || "http://localhost:5173";
+const clientUrl = process.env.CORS_ORIGIN?.trim() || "http://localhost:5173";
 console.log("Resolved CLIENT_URL:", clientUrl);
 
 // Process Payment Controller
