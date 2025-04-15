@@ -3,7 +3,7 @@ import useCartStore from "../store/cartStore";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from "@stripe/stripe-js";
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe("pk_test_51R9iKpPuI568s4MQZdpJZ4Pf54dqgWcKdFhVWVP6cnEOPQRUEd4E4JFYU2seU0GVmbkX889KnfiUIchMJctqJvUy00UHmi8uOa");
@@ -12,24 +12,21 @@ const Checkout = () => {
   const { items, totalPrice, clearCart, loadCartFromStorage } = useCartStore();
   const [address, setAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
-  const [couponCode, setCouponCode] = useState(""); // State for coupon code
-  const [discount, setDiscount] = useState(0); // State for discount
-  const [finalPrice, setFinalPrice] = useState(totalPrice); // State for final price
-  const [availableCoupons, setAvailableCoupons] = useState([]); // State for available coupons
+  const [couponCode, setCouponCode] = useState(""); 
+  const [discount, setDiscount] = useState(0); 
+  const [finalPrice, setFinalPrice] = useState(totalPrice); 
+  const [availableCoupons, setAvailableCoupons] = useState([]); 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Load cart data from local storage on component mount
   useEffect(() => {
     loadCartFromStorage();
   }, [loadCartFromStorage]);
 
-  // Update final price whenever total price or discount changes
   useEffect(() => {
     setFinalPrice(totalPrice - discount);
   }, [totalPrice, discount]);
 
-  // Fetch available coupons
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
@@ -42,33 +39,30 @@ const Checkout = () => {
         toast.error("Failed to load available coupons.");
       }
     };
-
     fetchCoupons();
   }, []);
 
   const handleApplyCoupon = async (code) => {
-    const couponToApply = code || couponCode; // Use provided code or input field value
+    const couponToApply = code || couponCode; 
     if (!couponToApply) {
       return toast.error("Please enter a coupon code");
     }
 
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/coupon/apply`, // Ensure this matches the backend route
-        { code: couponToApply, totalPrice }, // Send totalPrice instead of orderId
+        `${import.meta.env.VITE_API_URL}/coupon/apply`,
+        { code: couponToApply, totalPrice },
         { withCredentials: true }
       );
 
       const { discountAmount, finalPrice } = res.data;
       setDiscount(discountAmount);
       setFinalPrice(finalPrice);
-      setCouponCode(couponToApply); // Store applied coupon code
+      setCouponCode(couponToApply);
       toast.success("Coupon applied successfully!");
     } catch (error) {
       console.error("Apply Coupon Error:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to apply coupon. Please try again."
-      );
+      toast.error(error.response?.data?.message || "Failed to apply coupon. Please try again.");
     }
   };
 
@@ -85,10 +79,7 @@ const Checkout = () => {
       return toast.error("Your cart is empty");
     }
 
-    // Extract restaurantId from the first item and check if it exists
     const restaurantId = items[0]?.restaurantId;
-
-    // Check if all items have the same restaurantId
     const allSameRestaurant = items.every(item => item.restaurantId === restaurantId);
 
     if (!restaurantId || !allSameRestaurant) {
@@ -97,54 +88,43 @@ const Checkout = () => {
 
     setLoading(true);
     try {
-      // Prepare the order data
       const orderData = {
-        restaurantId, // The first item's restaurantId (assuming all items belong to the same restaurant)
+        restaurantId,
         items: items.map((item) => ({
           foodId: item.foodId,
           quantity: item.quantity,
         })),
         address,
-        paymentMethod, // Ensure this is included in the orderData
+        paymentMethod,
         discount,
       };
 
-      console.log("Order Data:", orderData); // Debugging: Log the order data being sent
-
-      // Make the API request to place the order
       const orderResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/orders`,
         orderData,
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
 
       if (paymentMethod === "online") {
-        // Handle Stripe checkout for online payments
-        const sessionId = orderResponse.data?.sessionId; // Safely access sessionId
-
+        const sessionId = orderResponse.data?.sessionId;
         if (!sessionId) {
-          console.error("Backend response:", orderResponse.data); // Debugging: Log the backend response
+          console.error("Backend response:", orderResponse.data);
           throw new Error("Session ID is missing from the backend response.");
         }
 
         const stripe = await stripePromise;
-
-        // Redirect to the Stripe checkout page
         const { error } = await stripe.redirectToCheckout({ sessionId });
 
         if (error) {
           toast.error(error.message);
         }
       } else {
-        // If COD, finalize order placement and clear cart
         toast.success("Order placed successfully with Cash on Delivery!");
         clearCart();
         navigate("/orders");
       }
     } catch (error) {
-      console.error("Checkout error:", error); // Debugging: Log the error details
+      console.error("Checkout error:", error);
       if (error.response?.status === 401) {
         toast.error("You are not authorized. Please log in and try again.");
         navigate("/login");

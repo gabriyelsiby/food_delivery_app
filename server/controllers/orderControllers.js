@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
+import Stripe from "stripe";
 import { Order } from "../models/orderModel.js";
 import { FoodItem } from "../models/foodItemModel.js";
-import { DeliveryPartner } from "../models/deliveryPartnerModel.js";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // ✅ Place an Order (User Only)
 export const placeOrder = async (req, res) => {
@@ -63,6 +65,43 @@ export const placeOrder = async (req, res) => {
 
     const finalPrice = Math.max(totalPrice - discount, 0);
 
+    // 💳 If payment method is 'Online', create Stripe Checkout session
+    if (normalizedPaymentMethod === "Online") {
+      const lineItems = enrichedItems.map(item => ({
+        price_data: {
+          currency: "inr",
+          product_data: {
+            name: `Food Item ID: ${item.foodId}`,
+          },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.quantity,
+      }));
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: lineItems,
+        mode: "payment",
+        success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.CLIENT_URL}/payment-cancelled`,
+        metadata: {
+          userId: userId?.toString(), // Ensure userId is a string
+          restaurantId: restaurantId?.toString(), // Ensure restaurantId is a string
+          items: JSON.stringify(enrichedItems), // Convert items array to JSON string
+          address: JSON.stringify(address), // Convert address object to JSON string
+          discount: discount?.toString(), // Ensure discount is a string
+          finalPrice: finalPrice?.toString(), // Ensure finalPrice is a string
+          totalPrice: totalPrice?.toString() // Ensure totalPrice is a string
+        }
+      });
+
+      return res.status(200).json({
+        message: "Stripe Checkout session created",
+        sessionId: session.id,
+      });
+    }
+
+    // 💵 If payment method is 'CashOnDelivery', save the order directly
     const newOrder = new Order({
       userId,
       restaurantId,
@@ -77,7 +116,10 @@ export const placeOrder = async (req, res) => {
 
     await newOrder.save();
 
-    res.status(201).json({ message: "Order placed successfully", data: newOrder });
+    res.status(201).json({
+      message: "Order placed successfully with Cash On Delivery",
+      data: newOrder,
+    });
   } catch (error) {
     console.error("❌ Place Order Error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
