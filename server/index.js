@@ -42,7 +42,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve Static Files
+// Serve Static File
 const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
