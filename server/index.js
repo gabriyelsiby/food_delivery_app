@@ -14,12 +14,13 @@ const port = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
-// Allowed Origins
+// Allowed Origins (Add the one missing from your error logs)
 const allowedOrigins = [
   "http://localhost:5173",
   "https://food-delivery-user-rho.vercel.app",
   "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app",
-  "https://foodey-express-client.vercel.app"
+  "https://foodey-express-client.vercel.app",
+  "https://foodey-express-client-1qs17jmqz.vercel.app"  // Added this URL
 ];
 
 // CORS Configuration
@@ -29,6 +30,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.log(`Blocked CORS request from: ${origin}`);
         callback(new Error("Not allowed by CORS: " + origin));
       }
     },
@@ -42,7 +44,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve Static File
+// Serve Static Files
 const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
@@ -62,6 +64,7 @@ app.all("*", (req, res) => {
 // Global Error Handler (IMPORTANT for catching CORS & other internal errors)
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.stack);
+  // You can log more information here or handle specific errors
   res.status(500).json({
     message: "Something went wrong on the server.",
     error: err.message,
