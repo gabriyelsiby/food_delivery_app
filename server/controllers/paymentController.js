@@ -9,11 +9,11 @@ dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Validate Client URL
-if (!process.env.CLIENT_URL) {
-  console.warn("CLIENT_URL is not defined in the environment. Using fallback URL.");
+if (!process.env.CLIENT_URL || !/^https?:\/\//.test(process.env.CLIENT_URL.trim())) {
+  console.warn("CLIENT_URL is not defined or invalid in the environment. Using fallback URL.");
 }
-const clientUrl = process.env.CLIENT_URL && process.env.CLIENT_URL.trim() !== ""
-  ? process.env.CLIENT_URL
+const clientUrl = process.env.CLIENT_URL && /^https?:\/\//.test(process.env.CLIENT_URL.trim())
+  ? process.env.CLIENT_URL.trim()
   : 'http://localhost:5173';
 
 console.log("Resolved CLIENT_URL:", clientUrl);
