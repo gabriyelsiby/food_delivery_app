@@ -16,7 +16,23 @@ const AssignedOrders = () => {
                         "Authorization": `Bearer ${localStorage.getItem("token")}`, // Assuming JWT token is stored in localStorage
                     },
                 });
-                setOrders(response.data.data);
+
+                // Format the address into a string to avoid React rendering issues
+                setOrders(response.data.data.map(order => {
+                    const address = order.userId?.address;
+                    const formattedAddress = address
+                        ? `${address.houseName}, ${address.landmark}, ${address.city}, ${address.pincode}`
+                        : "Address not available";
+
+                    return {
+                        ...order,
+                        customerName: order.userId?.name || "Unknown",
+                        customerPhone: order.userId?.phone || "N/A",
+                        customerAddress: formattedAddress,
+                        restaurantName: order.restaurantId?.name || "Unknown",
+                    };
+                }));
+
             } catch (err) {
                 setError("Failed to load assigned orders.");
             } finally {
@@ -35,6 +51,7 @@ const AssignedOrders = () => {
                 },
             });
             alert(`Order marked as '${status}'`);
+
             setOrders((prevOrders) =>
                 prevOrders.map((order) =>
                     order._id === orderId ? { ...order, status } : order
@@ -45,7 +62,7 @@ const AssignedOrders = () => {
         }
     };
 
-    // Render loading or error state
+    // Loading or Error UI
     if (loading) return <div className="text-center mt-4">Loading...</div>;
     if (error) return <div className="text-center mt-4 text-red-500">{error}</div>;
 
@@ -60,6 +77,7 @@ const AssignedOrders = () => {
                         <tr className="bg-gray-100">
                             <th className="border border-gray-300 px-4 py-2 text-left">Order ID</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Customer Name</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Customer Address</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
                         </tr>
@@ -69,6 +87,7 @@ const AssignedOrders = () => {
                             <tr key={order._id} className="hover:bg-gray-50">
                                 <td className="border border-gray-300 px-4 py-2">{order._id}</td>
                                 <td className="border border-gray-300 px-4 py-2">{order.customerName}</td>
+                                <td className="border border-gray-300 px-4 py-2">{order.customerAddress}</td>
                                 <td className="border border-gray-300 px-4 py-2">{order.status}</td>
                                 <td className="border border-gray-300 px-4 py-2">
                                     {order.status !== "Delivered" && (

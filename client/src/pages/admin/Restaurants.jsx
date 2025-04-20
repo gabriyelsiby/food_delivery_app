@@ -22,7 +22,7 @@ const Restaurants = () => {
 
   const handleToggleStatus = async (id, currentStatus) => {
     try {
-      await axios.put(`/admin/restaurants/${id}/status`, { isOpen: !currentStatus });
+      await axios.put(`restaurant/admin/${id}/status`, { isOpen: !currentStatus });
       toast.success("Restaurant status updated");
       fetchRestaurants();
     } catch (error) {

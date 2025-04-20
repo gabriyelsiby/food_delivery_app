@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Stripe from "stripe";
 import { Order } from "../models/orderModel.js";
 import { FoodItem } from "../models/foodItemModel.js";
+import { DeliveryPartner } from "../models/deliveryPartnerModel.js"; // Add this import
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -85,13 +86,13 @@ export const placeOrder = async (req, res) => {
         success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.CLIENT_URL}/payment-cancelled`,
         metadata: {
-          userId: userId?.toString(), // Ensure userId is a string
-          restaurantId: restaurantId?.toString(), // Ensure restaurantId is a string
-          items: JSON.stringify(enrichedItems), // Convert items array to JSON string
-          address: JSON.stringify(address), // Convert address object to JSON string
-          discount: discount?.toString(), // Ensure discount is a string
-          finalPrice: finalPrice?.toString(), // Ensure finalPrice is a string
-          totalPrice: totalPrice?.toString() // Ensure totalPrice is a string
+          userId: userId?.toString(),
+          restaurantId: restaurantId?.toString(),
+          items: JSON.stringify(enrichedItems),
+          address: JSON.stringify(address),
+          discount: discount?.toString(),
+          finalPrice: finalPrice?.toString(),
+          totalPrice: totalPrice?.toString()
         }
       });
 

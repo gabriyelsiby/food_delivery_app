@@ -87,23 +87,27 @@ export const getDeliveryPartnerProfile = async (req, res) => {
     }
 };
 
-//  Get Assigned Orders
+// ✅ Get Orders Assigned to Delivery Partner (Delivery Partner Only)
 export const getAssignedOrders = async (req, res) => {
     try {
-        const deliveryPartnerId = req.user.id;
+        const deliveryPartnerId = req.user?.id;
 
-        const orders = await Order.find({ deliveryPartner: deliveryPartnerId })
-            .populate("userId", "name email")
-            .populate("restaurantId", "name address")
-            .populate("items.foodId", "name price");
-
-        if (!orders.length) {
-            return res.status(404).json({ message: "No assigned orders found" });
+        if (!mongoose.Types.ObjectId.isValid(deliveryPartnerId)) {
+            return res.status(400).json({ message: "Invalid delivery partner ID" });
         }
 
-        res.json({ data: orders, message: "Assigned orders fetched successfully" });
+        const orders = await Order.find({ deliveryPartner: deliveryPartnerId })
+            .populate("userId", "name email phone address")  // <-- Added address here
+            .populate("restaurantId", "name address")
+            .populate("items.foodId", "name price imageUrl");
+
+        res.status(200).json({
+            success: true,
+            data: orders
+        });
+
     } catch (error) {
-        console.error("Get Assigned Orders Error:", error);
+        console.error("❌ Get Assigned Orders Error:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
@@ -130,7 +134,6 @@ export const updateDeliveryStatus = async (req, res) => {
 
         order.status = status;
 
-        // Use `save` with `validateModifiedOnly` to avoid validating unmodified fields like `paymentMethod`
         await order.save({ validateModifiedOnly: true });
 
         res.json({ message: `Order status updated to '${status}'`, data: order });
