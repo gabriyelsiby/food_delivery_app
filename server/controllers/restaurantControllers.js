@@ -1,4 +1,3 @@
-// restaurantControllers.js
 import { Restaurant } from "../models/restaurantModel.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/token.js";
@@ -31,11 +30,14 @@ export const registerRestaurant = async (req, res) => {
         await newRestaurant.save();
         const token = generateToken(newRestaurant._id, "restaurant");
 
-        // ✅ Set cookie name to 'jwt'
-        res.cookie("jwt", token, { httpOnly: true, secure: false, sameSite: "Lax" });
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
+        });
 
-        res.status(201).json({ 
-            message: "Restaurant registered successfully", 
+        res.status(201).json({
+            message: "Restaurant registered successfully",
             data: {
                 name: newRestaurant.name,
                 email: newRestaurant.email,
@@ -69,8 +71,11 @@ export const restaurantLogin = async (req, res) => {
 
         const token = generateToken(restaurant._id, "restaurant");
 
-        // ✅ Set cookie name to 'jwt'
-        res.cookie("jwt", token, { httpOnly: true, secure: false, sameSite: "Lax" });
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
+        });
 
         res.json({
             message: "Login successful",
@@ -132,14 +137,14 @@ export const updateRestaurantProfile = async (req, res) => {
     }
 };
 
-// ✅ Get all restaurants (optionally filter by cuisine)
+// Get all restaurants (optionally filter by cuisine)
 export const getRestaurants = async (req, res) => {
     try {
         const { cuisine } = req.query;
-
         let query = {};
+
         if (cuisine) {
-            query.cuisine = { $regex: new RegExp(cuisine, "i") }; // case-insensitive
+            query.cuisine = { $regex: new RegExp(cuisine, "i") };
         }
 
         const restaurants = await Restaurant.find(query).select("-password");
@@ -150,7 +155,7 @@ export const getRestaurants = async (req, res) => {
     }
 };
 
-// ✅ Enable or Disable Restaurant (Admin Only)
+// Enable or Disable Restaurant (Admin Only)
 export const updateRestaurantStatus = async (req, res) => {
     try {
         const { id } = req.params;
@@ -176,12 +181,14 @@ export const updateRestaurantStatus = async (req, res) => {
     }
 };
 
-
 // Logout Restaurant
 export const restaurantLogout = async (req, res) => {
     try {
-        // ✅ Clear cookie named 'jwt'
-        res.clearCookie("jwt", { httpOnly: true, secure: false, sameSite: "Lax" });
+        res.clearCookie("jwt", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
+        });
         res.json({ message: "Logout successful" });
     } catch (error) {
         console.error("Logout Error:", error);
