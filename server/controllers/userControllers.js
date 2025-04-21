@@ -23,6 +23,26 @@ const cookieOptions = {
 };
 
 // -------------------------
+// Middleware for verifying JWT and adding user info to req.user
+// -------------------------
+export const verifyToken = (req, res, next) => {
+  const token = req.cookies.jwt || req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(403).json({ message: "No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    console.error("🔥 Token verification failed:", error);
+    res.status(403).json({ message: "Invalid or expired token" });
+  }
+};
+
+// -------------------------
 // Check if User is Authenticated
 // -------------------------
 export const checkUser = async (req, res) => {
