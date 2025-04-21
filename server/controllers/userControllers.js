@@ -289,8 +289,9 @@ export const userLogout = async (req, res) => {
 // -------------------------
 export const getAllUsers = async (req, res) => {
   try {
-    console.log("User Role:", req.user.role);  // Debugging line to check the role
-    if (req.user.role !== "admin") {
+    console.log("Decoded User in Request:", req.user); // Debugging line to check req.user
+    if (!req.user || req.user.role !== "admin") {
+      console.error("❌ Access denied: User is not an admin or req.user is missing");
       return res.status(403).json({ message: "Access denied: Admins only" });
     }
 

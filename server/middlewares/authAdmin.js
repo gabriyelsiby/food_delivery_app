@@ -16,6 +16,8 @@ export const authAdmin = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
+    console.log("Decoded Token:", decoded); // Debugging line to check decoded token
+
     if (!decoded || decoded.role !== "admin") {
       console.error("❌ Access denied. Token role:", decoded?.role);
       return res.status(403).json({ message: "❌ Access denied. Not an admin" });
