@@ -11,8 +11,8 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("/orders/restaurant/orders"); // Correct endpoint
-        setOrders(response.data.data || []);
+        const response = await axios.get("/orders/restaurant/orders");
+        setOrders(response.data.data || []); // Assuming response.data.data contains the orders
       } catch (error) {
         console.error("Error fetching orders:", error);
         alert("Failed to fetch orders");
@@ -58,12 +58,10 @@ const Orders = () => {
                 <h2 className="text-lg font-medium">Order #{order._id}</h2>
                 <p><strong>Status:</strong> {order.status}</p>
                 <p>
-                  <strong>Customer:</strong>{" "}
-                  {order.customer?.name || order.customer || "Unknown"}
+                  <strong>Customer:</strong> {order.userId?.name || "Unknown"}
                 </p>
                 <p>
-                  <strong>Total:</strong>{" "}
-                  ${typeof order.total === "number" ? order.total.toFixed(2) : "0.00"}
+                  <strong>Total:</strong> ${order.total?.toFixed(2) || "0.00"}
                 </p>
 
                 {order.items && order.items.length > 0 && (
@@ -72,7 +70,7 @@ const Orders = () => {
                     <ul className="list-disc pl-5">
                       {order.items.map((item, index) => (
                         <li key={index}>
-                          {item.name} x {item.quantity} - ${item.price}
+                          <strong>{item.foodId?.name || "Unknown Item"}</strong> x {item.quantity} - ${item.foodId?.price?.toFixed(2) || "0.00"}
                         </li>
                       ))}
                     </ul>

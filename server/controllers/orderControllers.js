@@ -295,7 +295,6 @@ export const getAllDeliveryPartners = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
-
 // ✅ Get Orders for a Specific Restaurant (Restaurant Only)
 export const getRestaurantOrders = async (req, res) => {
   try {
@@ -307,12 +306,21 @@ export const getRestaurantOrders = async (req, res) => {
 
     const orders = await Order.find({ restaurantId })
       .sort({ createdAt: -1 })
-      .populate("userId", "name email")  // <-- this is the customer's name
+      .populate("userId", "name email")
       .populate("items.foodId", "name price imageUrl");
+
+    // Calculate total for each order dynamically
+    const ordersWithTotal = orders.map(order => {
+      const total = order.items.reduce((sum, item) => {
+        const price = item.foodId?.price || 0;
+        return sum + (price * item.quantity);
+      }, 0);
+      return { ...order.toObject(), total };
+    });
 
     res.status(200).json({
       success: true,
-      data: orders
+      data: ordersWithTotal
     });
 
   } catch (error) {
