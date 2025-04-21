@@ -9,6 +9,7 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [foods, setFoods] = useState([]);
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("token"); // Check if user is logged in
 
   useEffect(() => {
     const fetchFoods = async () => {
@@ -30,6 +31,10 @@ const Home = () => {
   };
 
   const handleAddToCart = async (food) => {
+    if (!isLoggedIn) {
+      toast.error("Please login");
+      return;
+    }
     try {
       await axios.post("/cart/add", {
         foodId: food._id,

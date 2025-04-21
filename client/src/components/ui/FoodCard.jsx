@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const FoodCard = ({ food, onAddToCart, onViewDetails, buttonLabel = "Details" }) => {
+const FoodCard = ({ food, onAddToCart, onViewDetails, buttonLabel = "Reviews" }) => {
   return (
     <div className="bg-white rounded-2xl shadow p-4 space-y-3 hover:shadow-lg transition duration-300">
       <img
