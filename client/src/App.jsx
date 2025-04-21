@@ -40,6 +40,7 @@ import RestaurantDashboard from "./pages/restaurant/Dashboard";
 import AddFood from "./pages/restaurant/AddFood";
 import RestaurantOrders from "./pages/restaurant/Orders";
 import RestaurantProfile from "./pages/restaurant/Profile";
+import ManageMenu from "./pages/restaurant/ManageMenu";  // <-- Added this line
 
 // Delivery Pages
 import DeliveryLogin from "./pages/delivery/Login";
@@ -94,6 +95,7 @@ const App = () => {
           <Route path="add-food" element={<AddFood />} />
           <Route path="orders" element={<RestaurantOrders />} />
           <Route path="profile" element={<RestaurantProfile />} />
+          <Route path="manage-menu" element={<ManageMenu />} /> {/* Added manage menu route */}
         </Route>
 
         {/* Delivery Protected Routes */}

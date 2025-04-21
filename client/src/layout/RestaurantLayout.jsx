@@ -9,6 +9,7 @@ const RestaurantLayout = () => {
     { path: "/restaurant/dashboard", label: "Dashboard" },
     { path: "/restaurant/add-food", label: "Add Food" },
     { path: "/restaurant/orders", label: "Orders" },
+    { path: "/restaurant/manage-menu", label: "Manage Menu" },  // <-- Added Manage Menu
     { path: "/restaurant/profile", label: "Profile" }
   ];
 
