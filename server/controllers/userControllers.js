@@ -1,6 +1,6 @@
 import { User } from "../models/userModel.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";  // Ensure jwt is imported
+import jwt from "jsonwebtoken";
 import { generateToken } from "../utils/token.js";
 import fs from "fs";
 import path from "path";
@@ -23,21 +23,16 @@ const cookieOptions = {
   ...(prodCookieDomain && { domain: prodCookieDomain }),
 };
 
-// -------------------------
-// Middleware for verifying JWT and adding user info to req.user
-// -------------------------
+// Middleware: Verify JWT Token
 export const verifyToken = (req, res, next) => {
-  const token = req.cookies.jwt || req.headers.authorization?.split(' ')[1];
-  
+  const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
   if (!token) {
     return res.status(403).json({ message: "No token provided" });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;  // This will include the user role and other details
-
-    console.log("Decoded User:", req.user);  // Debugging line to check decoded token
+    req.user = decoded;
     next();
   } catch (error) {
     console.error("🔥 Token verification failed:", error);
@@ -45,9 +40,7 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
-// -------------------------
-// Check if User is Authenticated
-// -------------------------
+// Auth Check Route
 export const checkUser = async (req, res) => {
   try {
     res.json({ message: "User is authenticated", user: req.user });
@@ -57,9 +50,7 @@ export const checkUser = async (req, res) => {
   }
 };
 
-// -------------------------
-// User Signup
-// -------------------------
+// Signup
 export const userSignup = async (req, res) => {
   try {
     const { name, email, password, confirmPassword, mobile, role } = req.body;
@@ -83,12 +74,11 @@ export const userSignup = async (req, res) => {
       email,
       password: hashedPassword,
       mobile,
-      role: role || "user",  // Default role to "user"
+      role: role || "user",
     });
 
     await newUser.save();
     const token = generateToken(newUser._id, newUser.role);
-
     res.cookie("jwt", token, cookieOptions);
 
     res.status(201).json({
@@ -99,9 +89,7 @@ export const userSignup = async (req, res) => {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
-        profilePic: newUser.profilePic
-          ? `${BASE_URL}/${newUser.profilePic}`
-          : null,
+        profilePic: newUser.profilePic ? `${BASE_URL}/${newUser.profilePic}` : null,
       },
     });
   } catch (error) {
@@ -110,9 +98,7 @@ export const userSignup = async (req, res) => {
   }
 };
 
-// -------------------------
-// User Login
-// -------------------------
+// Login
 export const userLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -142,9 +128,7 @@ export const userLogin = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        profilePic: user.profilePic
-          ? `${BASE_URL}/${user.profilePic}`
-          : null,
+        profilePic: user.profilePic ? `${BASE_URL}/${user.profilePic}` : null,
       },
     });
   } catch (error) {
@@ -153,14 +137,11 @@ export const userLogin = async (req, res) => {
   }
 };
 
-// -------------------------
-// Get User Profile
-// -------------------------
+// Get Profile
 export const userProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId).select("name email role profilePic");
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -172,9 +153,7 @@ export const userProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        profilePic: user.profilePic
-          ? `${BASE_URL}/${user.profilePic}`
-          : null,
+        profilePic: user.profilePic ? `${BASE_URL}/${user.profilePic}` : null,
       },
     });
   } catch (error) {
@@ -183,9 +162,7 @@ export const userProfile = async (req, res) => {
   }
 };
 
-// -------------------------
-// Update User Profile
-// -------------------------
+// Update Profile
 export const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -195,20 +172,16 @@ export const updateUserProfile = async (req, res) => {
     if (req.file) {
       const newProfilePic = `uploads/${req.file.filename}`;
       const user = await User.findById(userId);
-
       if (user.profilePic && user.profilePic.startsWith("uploads/")) {
         const oldImagePath = path.join("uploads", path.basename(user.profilePic));
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
       }
-
       updateFields.profilePic = newProfilePic;
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
-      new: true,
-    }).select("-password");
+    const updatedUser = await User.findByIdAndUpdate(userId, updateFields, { new: true }).select("-password");
 
     res.json({
       message: "Profile updated successfully",
@@ -217,9 +190,7 @@ export const updateUserProfile = async (req, res) => {
         name: updatedUser.name,
         email: updatedUser.email,
         role: updatedUser.role,
-        profilePic: updatedUser.profilePic
-          ? `${BASE_URL}/${updatedUser.profilePic}`
-          : null,
+        profilePic: updatedUser.profilePic ? `${BASE_URL}/${updatedUser.profilePic}` : null,
       },
     });
   } catch (error) {
@@ -228,9 +199,7 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
-// -------------------------
-// Update User Address
-// -------------------------
+// Update Address
 export const updateUserAddress = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -242,15 +211,7 @@ export const updateUserAddress = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      {
-        address: {
-          houseName,
-          city,
-          landmark,
-          pincode,
-          phone,
-        },
-      },
+      { address: { houseName, city, landmark, pincode, phone } },
       { new: true }
     ).select("-password");
 
@@ -264,9 +225,7 @@ export const updateUserAddress = async (req, res) => {
   }
 };
 
-// -------------------------
-// User Logout (Vercel-friendly)
-// -------------------------
+// Logout
 export const userLogout = async (req, res) => {
   try {
     res.clearCookie("jwt", {
@@ -276,7 +235,6 @@ export const userLogout = async (req, res) => {
       path: "/",
       ...(prodCookieDomain && { domain: prodCookieDomain }),
     });
-
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("🔥 Logout Error:", error);
@@ -284,19 +242,14 @@ export const userLogout = async (req, res) => {
   }
 };
 
-// -------------------------
 // Admin: Get All Users
-// -------------------------
 export const getAllUsers = async (req, res) => {
   try {
-    console.log("Decoded User in Request:", req.user); // Debugging line to check req.user
     if (!req.user || req.user.role !== "admin") {
-      console.error("❌ Access denied: User is not an admin or req.user is missing");
       return res.status(403).json({ message: "Access denied: Admins only" });
     }
 
     const users = await User.find().select("-password");
-
     res.json({
       message: "All users fetched successfully",
       data: users,

@@ -11,27 +11,27 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Connect to MongoDB
+// Connect MongoDB
 connectDB();
 
-// Allowed Origins (Add the one missing from your error logs)
+// Allowed Frontend Origins
 const allowedOrigins = [
   "http://localhost:5173",
   "https://food-delivery-user-rho.vercel.app",
   "https://food-delivery-nd0dj6v25-gabriyel-sibys-projects-72d0d689.vercel.app",
   "https://foodey-express-client.vercel.app",
-  "https://foodey-express-client-1qs17jmqz.vercel.app"  // Added this URL
+  "https://foodey-express-client-1qs17jmqz.vercel.app"
 ];
 
-// CORS Configuration
+// CORS: Allow requests only from approved frontends
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log(`Blocked CORS request from: ${origin}`);
-        callback(new Error("Not allowed by CORS: " + origin));
+        console.log(`❌ Blocked CORS request from: ${origin}`);
+        callback(new Error(`Not allowed by CORS: ${origin}`));
       }
     },
     credentials: true,
@@ -40,38 +40,37 @@ app.use(
   })
 );
 
-// Middleware
+// Middlewares
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve Static Files
+// Serve Uploaded Files
 const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
-// Test Route
+// Root Test Route
 app.get("/", (req, res) => {
-  res.send("🚀 Server is running!");
+  res.send("🚀 API Server is running!");
 });
 
 // API Routes
 app.use("/api", apiRouter);
 
-// Catch-All Route for undefined paths
+// Catch 404s
 app.all("*", (req, res) => {
   res.status(404).json({ message: "❌ Endpoint does not exist" });
 });
 
-// Global Error Handler (IMPORTANT for catching CORS & other internal errors)
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.stack);
-  // You can log more information here or handle specific errors
   res.status(500).json({
     message: "Something went wrong on the server.",
     error: err.message,
   });
 });
 
-// Start Server
+// Start Express Server
 app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
+  console.log(`🚀 Server is running on port ${port}`);
 });
