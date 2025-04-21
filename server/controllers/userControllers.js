@@ -1,5 +1,6 @@
 import { User } from "../models/userModel.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";  // Ensure jwt is imported
 import { generateToken } from "../utils/token.js";
 import fs from "fs";
 import path from "path";
@@ -34,7 +35,9 @@ export const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = decoded;  // This will include the user role and other details
+
+    console.log("Decoded User:", req.user);  // Debugging line to check decoded token
     next();
   } catch (error) {
     console.error("🔥 Token verification failed:", error);
@@ -80,7 +83,7 @@ export const userSignup = async (req, res) => {
       email,
       password: hashedPassword,
       mobile,
-      role: role || "user",
+      role: role || "user",  // Default role to "user"
     });
 
     await newUser.save();
@@ -286,6 +289,7 @@ export const userLogout = async (req, res) => {
 // -------------------------
 export const getAllUsers = async (req, res) => {
   try {
+    console.log("User Role:", req.user.role);  // Debugging line to check the role
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied: Admins only" });
     }
