@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 export const authRestaurant = (req, res, next) => {
     try {
-        let token = req.cookies.jwt;  // ✅ Use correct cookie name
+        let token = req.cookies.jwt;  //  Use correct cookie name
 
         // Fallback to Authorization header
         if (!token && req.headers.authorization?.startsWith("Bearer")) {
