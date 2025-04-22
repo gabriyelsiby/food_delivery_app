@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/token.js";
 import mongoose from "mongoose";
 
-//  Register a Delivery Partner
+// Register a Delivery Partner
 export const registerDeliveryPartner = async (req, res) => {
     try {
         const { name, email, password, mobile, vehicleType } = req.body;
@@ -30,17 +30,20 @@ export const registerDeliveryPartner = async (req, res) => {
         await newPartner.save();
         const token = generateToken(newPartner._id, "deliveryPartner");
 
-        res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "Lax" });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
+        });
 
         res.status(201).json({ message: "Delivery partner registered successfully", data: newPartner });
-
     } catch (error) {
         console.error("Register Delivery Partner Error:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 
-//  Login a Delivery Partner
+// Login a Delivery Partner
 export const loginDeliveryPartner = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -61,7 +64,11 @@ export const loginDeliveryPartner = async (req, res) => {
 
         const token = generateToken(partner._id, "deliveryPartner");
 
-        res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "Lax" });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
+        });
 
         res.json({ message: "Login successful", data: { name: partner.name, email: partner.email } });
     } catch (error) {
@@ -70,7 +77,7 @@ export const loginDeliveryPartner = async (req, res) => {
     }
 };
 
-//  Get Delivery Partner Profile
+// Get Delivery Partner Profile
 export const getDeliveryPartnerProfile = async (req, res) => {
     try {
         const partnerId = req.user.id;
@@ -87,7 +94,7 @@ export const getDeliveryPartnerProfile = async (req, res) => {
     }
 };
 
-// ✅ Get Orders Assigned to Delivery Partner (Delivery Partner Only)
+// Get Orders Assigned to Delivery Partner
 export const getAssignedOrders = async (req, res) => {
     try {
         const deliveryPartnerId = req.user?.id;
@@ -97,7 +104,7 @@ export const getAssignedOrders = async (req, res) => {
         }
 
         const orders = await Order.find({ deliveryPartner: deliveryPartnerId })
-            .populate("userId", "name email phone address")  // <-- Added address here
+            .populate("userId", "name email phone address")
             .populate("restaurantId", "name address")
             .populate("items.foodId", "name price imageUrl");
 
@@ -105,7 +112,6 @@ export const getAssignedOrders = async (req, res) => {
             success: true,
             data: orders
         });
-
     } catch (error) {
         console.error("❌ Get Assigned Orders Error:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
@@ -133,7 +139,6 @@ export const updateDeliveryStatus = async (req, res) => {
         }
 
         order.status = status;
-
         await order.save({ validateModifiedOnly: true });
 
         res.json({ message: `Order status updated to '${status}'`, data: order });
@@ -143,7 +148,7 @@ export const updateDeliveryStatus = async (req, res) => {
     }
 };
 
-//  Assign Order to a Delivery Partner (Admin Only)
+// Assign Order to a Delivery Partner (Admin Only)
 export const assignOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -169,7 +174,7 @@ export const assignOrder = async (req, res) => {
     }
 };
 
-//  Logout a Delivery Partner
+// Logout a Delivery Partner
 export const logoutDeliveryPartner = async (req, res) => {
     try {
         res.clearCookie("token");

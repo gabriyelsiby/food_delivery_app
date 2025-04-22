@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 export const authDeliveryPartner = (req, res, next) => {
     try {
         const { token } = req.cookies;
+
         if (!token) {
             return res.status(401).json({ message: "Delivery partner not authorized" });
         }
